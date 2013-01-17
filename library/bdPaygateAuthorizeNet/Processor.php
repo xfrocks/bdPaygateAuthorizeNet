@@ -18,15 +18,14 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 	{
 		$input = new XenForo_Input($request);
 		$filtered = $input->filter(array(
-			'x_test_request' => XenForo_Input::STRING,
 			'x_amount' => XenForo_Input::STRING,
 			'x_trans_id' => XenForo_Input::STRING,
 			'x_description' => XenForo_Input::STRING,
+			'x_invoice_num' => XenForo_Input::STRING,
 			'x_MD5_Hash' => XenForo_Input::STRING,
 			'x_response_code' => XenForo_Input::UNUM,
-			'x_invoice_num' => XenForo_Input::STRING,
 			'x_response_reason_text' => XenForo_Input::STRING,
-			'x_response_reason_code' => XenForo_Input::STRING,
+			'x_response_reason_code' => XenForo_Input::UINT,
 			'x_custom' => XenForo_Input::STRING
 		));
 		
@@ -56,7 +55,15 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 			return false;
 		}
 		
-		$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_ACCEPTED;
+		// according to http://www.authorize.net/support/merchant/Transaction_Response/Response_Reason_Codes_and_Response_Reason_Text.htm
+		switch ($filtered['x_response_code']) {
+		case 1:
+			// This transaction has been approved.
+			$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_ACCEPTED;
+			break;
+		default:
+			$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_REJECTED;
+		}
 		
 		return true;
 	}
