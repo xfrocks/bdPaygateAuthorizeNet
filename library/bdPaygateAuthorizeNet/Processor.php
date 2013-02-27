@@ -117,4 +117,12 @@ EOF;
 		
 		return $form;
 	}
+	
+	public function redirectOnCallback(Zend_Controller_Request_Http $request, $paymentStatus, $processMessage)
+	{
+		// for Authorize.Net relay response architecture, always redirect back to index page
+		// TODO: find a better way to do this?
+		echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', XenForo_Link::buildPublicLink('canonical:index'));
+		return true;
+	}
 }
