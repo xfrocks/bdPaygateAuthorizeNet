@@ -122,7 +122,17 @@ EOF;
 	{
 		// for Authorize.Net relay response architecture, always redirect back to index page
 		// TODO: find a better way to do this?
-		echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', XenForo_Link::buildPublicLink('canonical:index'));
-		return true;
+		if ($paymentStatus == bdPaygate_Processor_Abstract::PAYMENT_STATUS_ACCEPTED)
+		{
+			echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', XenForo_Link::buildPublicLink('canonical:index'));
+			return true;
+		}
+		
+		$input = new XenForo_Input($request);
+		$filtered = $input->filter(array(
+			'x_response_reason_text' => XenForo_Input::STRING,
+		));
+		echo $filtered['x_response_reason_text'];
+		exit;
 	}
 }
