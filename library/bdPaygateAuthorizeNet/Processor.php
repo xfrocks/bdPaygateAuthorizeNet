@@ -16,6 +16,14 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 	
 	public function validateCallback(Zend_Controller_Request_Http $request, &$transactionId, &$paymentStatus, &$transactionDetails, &$itemId)
 	{
+		$amount = false;
+		$currency = false;
+
+		return $this->validateCallback2($request, $transactionId, $paymentStatus, $transactionDetails, $itemId, $amount, $currency);
+	}
+
+	public function validateCallback2(Zend_Controller_Request_Http $request, &$transactionId, &$paymentStatus, &$transactionDetails, &$itemId, &$amount, &$currency)
+	{
 		$input = new XenForo_Input($request);
 		$filtered = $input->filter(array(
 			'x_amount' => XenForo_Input::STRING,
@@ -31,11 +39,13 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 		
 		$transactionId = (!empty($filtered['x_trans_id']) ? ('authnet_' . $filtered['x_trans_id']) : '');
 		$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_OTHER;
-		$transactionDetails = $filtered;
+		$transactionDetails = array_merge($_POST, $filtered);
 		$itemId = $filtered['x_custom'];
+		$amount = $filtered['x_amount'];
+		$currency = 'n/a';
 		$processorModel = $this->getModelFromCache('bdPaygate_Model_Processor');
 		$options = XenForo_Application::getOptions();
-		
+
 		$log = $processorModel->getLogByTransactionId($transactionId);
 		if (!empty($log))
 		{
