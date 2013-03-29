@@ -19,6 +19,6 @@ class bdPaygateAuthorizeNet_Listener
 	
 	public static function file_health_check(XenForo_ControllerAdmin_Abstract $controller, array &$hashes)
 	{
-		$hashes += bdPaygateBaoKim_FileSums::getHashes();
+		$hashes += bdPaygateAuthorizeNet_FileSums::getHashes();
 	}
 }
