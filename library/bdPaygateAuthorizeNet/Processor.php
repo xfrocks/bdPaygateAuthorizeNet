@@ -134,7 +134,7 @@ EOF;
 		// TODO: find a better way to do this?
 		if ($paymentStatus == bdPaygate_Processor_Abstract::PAYMENT_STATUS_ACCEPTED)
 		{
-			echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', XenForo_Link::buildPublicLink('canonical:index'));
+			echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', XenForo_Link::buildPublicLink('canonical:misc/authorize-net-complete'));
 			return true;
 		}
 		
