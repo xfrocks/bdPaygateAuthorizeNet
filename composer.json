@@ -1,0 +1,6 @@
+{
+    "require": {
+        "php": ">=5.6",
+        "authorizenet/authorizenet": "~1.9"
+    }
+}
