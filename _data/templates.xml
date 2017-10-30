@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_cancel_recurring" version_id="1000000" version_string="1.0.0"><![CDATA[<div>
+	<xf:button href="{{ link('purchase/cancel-recurring', null, {'request_key': $purchaseRequest.request_key}) }}"
+		overlay="true" target="_blank">
+		{{ phrase('button.cancel') }}
+	</xf:button>
+</div>]]></template>
   <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1000000" version_string="1.0.0"><![CDATA[<xf:css src="payment_initiate.less"/>
 <xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb"/>
 

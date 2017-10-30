@@ -6,13 +6,14 @@ use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use net\authorize\api\constants as AnetConstants;
 use XF\Entity\PaymentProfile;
-use XF\Entity\PurchaseRequest;
 use XF\Purchasable\Purchase;
 use XF\Util\File;
-use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeError;
-use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeOk;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\BaseResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeResult;
-use Xfrocks\AuthorizeNetArb\Util\Sdk\Transaction;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeBaseResult;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\CreateCustomerProfileResult;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\SubscribeResult;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\GetTransactionResult;
 
 class Sdk
 {
@@ -106,12 +107,26 @@ class Sdk
      * @param Purchase $purchase
      * @param string $opaqueDataJson
      * @param array $inputs
-     * @return ChargeResult
+     * @return ChargeBaseResult|ChargeResult
      * @throws \Exception
      */
     public static function charge($paymentProfile, $purchase, $opaqueDataJson, array $inputs)
     {
         self::autoload();
+
+        $customerAddress = new AnetAPI\CustomerAddressType();
+        if (!empty($inputs['address'])) {
+            $customerAddress->setAddress($inputs['address']);
+            if (!empty($inputs['city'])) {
+                $customerAddress->setCity($inputs['city']);
+            }
+            if (!empty($inputs['state'])) {
+                $customerAddress->setState($inputs['state']);
+            }
+        } else {
+            $customerAddress->setFirstName('John');
+            $customerAddress->setLastName('Appleseed');
+        }
 
         $opaqueDataArray = @json_decode($opaqueDataJson, true);
         if (!is_array($opaqueDataArray)) {
@@ -126,26 +141,14 @@ class Sdk
 
         $transactionRequest = new AnetAPI\TransactionRequestType();
         $transactionRequest->setAmount($purchase->cost);
+        $transactionRequest->setBillTo($customerAddress);
         $transactionRequest->setPayment($payment);
         $transactionRequest->setTransactionType('authCaptureTransaction');
 
         if (!empty($inputs['email'])) {
             $customerData = new AnetAPI\CustomerDataType();
-            $customerData->setId(\XF::visitor()->user_id);
             $customerData->setEmail($inputs['email']);
             $transactionRequest->setCustomer($customerData);
-        }
-
-        if (!empty($inputs['address'])) {
-            $customerAddress = new AnetAPI\CustomerAddressType();
-            $customerAddress->setAddress($inputs['address']);
-            if (!empty($inputs['city'])) {
-                $customerAddress->setCity($inputs['city']);
-            }
-            if (!empty($inputs['state'])) {
-                $customerAddress->setState($inputs['state']);
-            }
-            $transactionRequest->setBillTo($customerAddress);
         }
 
         $request = new AnetAPI\CreateTransactionRequest();
@@ -157,13 +160,138 @@ class Sdk
         /** @var AnetAPI\CreateTransactionResponse $apiResponse */
         $apiResponse = self::chooseEndpointAndExecute($controller);
 
-        /** @var AnetAPI\TransactionResponseType $transactionResponse */
-        $transactionResponse = $apiResponse->getTransactionResponse();
+        if ($apiResponse->getMessages()->getResultCode() == self::RESPONSE_OK) {
+            return new ChargeResult($apiResponse);
+        } else {
+            return new ChargeBaseResult($apiResponse);
+        }
+    }
+
+    /**
+     * @param PaymentProfile $paymentProfile
+     * @param ChargeResult $chargeOk
+     * @return BaseResult|CreateCustomerProfileResult
+     */
+    public static function createCustomerProfileFromTransaction($paymentProfile, $chargeOk)
+    {
+        self::autoload();
+
+        $customer = new AnetAPI\CustomerProfileBaseType();
+        $customer->setDescription(sprintf('Customer Profile for transaction %s', $chargeOk->getTransId()));
+
+        $request = new AnetApi\CreateCustomerProfileFromTransactionRequest();
+        $request->setCustomer($customer);
+        $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
+        $request->setTransId($chargeOk->getTransId());
+
+        $controller = new AnetController\CreateCustomerProfileFromTransactionController($request);
+
+        /** @var AnetApi\CreateCustomerProfileResponse $apiResponse */
+        $apiResponse = self::chooseEndpointAndExecute($controller);
 
         if ($apiResponse->getMessages()->getResultCode() == self::RESPONSE_OK) {
-            return new ChargeOk($apiResponse, $transactionResponse);
+            return new CreateCustomerProfileResult($apiResponse);
         } else {
-            return new ChargeError($apiResponse, $transactionResponse);
+            return new BaseResult($apiResponse);
+        }
+    }
+
+    /**
+     * @param PaymentProfile $paymentProfile
+     * @param Purchase $purchase
+     * @param CreateCustomerProfileResult $customerProfile
+     * @param int $retries
+     * @return BaseResult|SubscribeResult
+     */
+    public static function subscribe($paymentProfile, $purchase, $customerProfile, $retries = 3)
+    {
+        self::autoload();
+
+        self::assertRecurringLength($purchase->lengthAmount, $purchase->lengthUnit);
+
+        $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
+        $interval->setLength($purchase->lengthAmount);
+        $interval->setUnit($purchase->lengthUnit . 's');
+
+        $startDate = new \DateTime();
+        $startDate->add(new \DateInterval(sprintf(
+            'P%d%s',
+            $purchase->lengthAmount,
+            strtoupper(substr($purchase->lengthUnit, 0, 1))
+        )));
+
+        $paymentSchedule = new AnetAPI\PaymentScheduleType();
+        $paymentSchedule->setInterval($interval);
+        $paymentSchedule->setStartDate($startDate);
+        $paymentSchedule->setTotalOccurrences(9999);
+
+        $apiCustomerProfile = new AnetAPI\CustomerProfileIdType();
+        $apiCustomerProfile->setCustomerPaymentProfileId($customerProfile->getPaymentProfileId());
+        $apiCustomerProfile->setCustomerProfileId($customerProfile->getProfileId());
+
+        $subscription = new AnetAPI\ARBSubscriptionType();
+        $subscription->setAmount($purchase->cost);
+        $subscription->setPaymentSchedule($paymentSchedule);
+        $subscription->setProfile($apiCustomerProfile);
+
+        $request = new AnetAPI\ARBCreateSubscriptionRequest();
+        $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
+        $request->setSubscription($subscription);
+
+        $controller = new AnetController\ARBCreateSubscriptionController($request);
+
+        /** @var AnetAPI\ARBCreateSubscriptionResponse $apiResponse */
+        $apiResponse = self::chooseEndpointAndExecute($controller);
+
+        if ($apiResponse->getMessages()->getResultCode() == self::RESPONSE_OK) {
+            return new SubscribeResult($apiResponse);
+        } else {
+            $baseResult = new BaseResult($apiResponse);
+
+            $shouldRetry = false;
+            $errors = $baseResult->getErrors();
+            if (isset($errors['E00040'])) {
+                $shouldRetry = true;
+            }
+
+            if ($shouldRetry && $retries > 0) {
+                if (!\XF::config('enableLivePayments')) {
+                    // Sandbox environment is a bit slow. Creating a new subscription immediately after
+                    // creating a customer profile may trigger error 40 (The record cannot be found.)
+                    sleep(15);
+                } else {
+                    sleep(1);
+                }
+
+                return self::subscribe($paymentProfile, $purchase, $customerProfile, $retries - 1);
+            }
+
+            return $baseResult;
+        }
+    }
+
+    /**
+     * @param PaymentProfile $paymentProfile
+     * @param string $subscriptionId
+     * @return bool
+     */
+    public static function unSubscribe($paymentProfile, $subscriptionId)
+    {
+        self::autoload();
+
+        $request = new AnetAPI\ARBCancelSubscriptionRequest();
+        $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
+        $request->setSubscriptionId($subscriptionId);
+
+        $controller = new AnetController\ARBCancelSubscriptionController($request);
+
+        /** @var AnetAPI\ARBCancelSubscriptionResponse $apiResponse */
+        $apiResponse = self::chooseEndpointAndExecute($controller);
+
+        if ($apiResponse->getMessages()->getResultCode() == self::RESPONSE_OK) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -188,6 +316,29 @@ class Sdk
         }
 
         require(dirname(__DIR__) . '/vendor/autoload.php');
+    }
+
+    /**
+     * @param int $amount
+     * @param string $unit
+     * @throws \Exception
+     */
+    private static function assertRecurringLength($amount, $unit)
+    {
+        switch ($unit) {
+            case 'day':
+                if ($amount >= 7 && $amount <= 365) {
+                    return;
+                }
+                break;
+            case 'month':
+                if ($amount >= 1 && $amount <= 12) {
+                    return;
+                }
+                break;
+        }
+
+        throw new \Exception(sprintf('Recurring length combination %d %s is not supported', $amount, $unit));
     }
 
     /**

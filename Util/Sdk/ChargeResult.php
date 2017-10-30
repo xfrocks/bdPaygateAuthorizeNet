@@ -2,24 +2,20 @@
 
 namespace Xfrocks\AuthorizeNetArb\Util\Sdk;
 
-use net\authorize\api\contract\v1 as AnetAPI;
-
-abstract class ChargeResult
+class ChargeResult extends ChargeBaseResult
 {
-    protected $apiResponse;
-    protected $transactionResponse;
-
-    /**
-     * ChargeResult constructor.
-     *
-     * @param AnetAPI\CreateTransactionResponse $apiResponse
-     * @param AnetAPI\TransactionResponseType $transactionResponse
-     */
-    public function __construct($apiResponse, $transactionResponse)
+    public function isOk()
     {
-        $this->apiResponse = $apiResponse;
-        $this->transactionResponse = $transactionResponse;
+        return true;
     }
 
-    abstract public function isOk();
+    public function getTransId()
+    {
+        return $this->getTransactionResponse()->getTransId();
+    }
+
+    public function toArray()
+    {
+        return (array)$this->getTransactionResponse();
+    }
 }

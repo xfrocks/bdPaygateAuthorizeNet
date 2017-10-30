@@ -70,6 +70,48 @@ class Provider extends AbstractProvider
         $state->logDetails = $state->payload;
     }
 
+    public function processCancellation(
+        Controller $controller,
+        PurchaseRequest $purchaseRequest,
+        PaymentProfile $paymentProfile
+    ) {
+        $logFinder = \XF::finder('XF:PaymentProviderLog')
+            ->where('purchase_request_key', $purchaseRequest->request_key)
+            ->where('provider_id', $this->getProviderId())
+            ->order('log_date', 'desc');
+
+        $logs = $logFinder->fetch();
+
+        $subscriptionId = null;
+        foreach ($logs AS $log) {
+            if ($log->subscriber_id) {
+                $subscriptionId = $log->subscriber_id;
+                break;
+            }
+        }
+
+        if (!$subscriptionId) {
+            return $controller->error('Could not find a subscriber ID or customer ID for this purchase request.');
+        }
+
+        $unSubscribed = false;
+        try {
+            $unSubscribed = Sdk::unSubscribe($paymentProfile, $subscriptionId);
+        } catch (\Exception $e) {
+            \XF::logException($e);
+        }
+        if (!$unSubscribed) {
+            throw $controller->exception($controller->error(
+                \XF::phrase('this_subscription_cannot_be_cancelled_maybe_already_cancelled')
+            ));
+        }
+
+        return $controller->redirect(
+            $controller->getDynamicRedirect(),
+            \XF::phrase('Xfrocks_AuthorizeNetArb_subscription_cancelled_successfully')
+        );
+    }
+
     public function processPayment(
         Controller $controller,
         PurchaseRequest $purchaseRequest,
@@ -89,18 +131,35 @@ class Provider extends AbstractProvider
         $transactionId = null;
         $subId = null;
 
-        $chargeResult = Sdk::charge($paymentProfile, $purchase, $opaqueDataJson, $inputs);
+        $chargeBaseResult = Sdk::charge($paymentProfile, $purchase, $opaqueDataJson, $inputs);
 
-        if (!$chargeResult->isOk()) {
-            /** @var Sdk\ChargeError $chargeError */
-            $chargeError = $chargeResult;
-            \XF::logError(implode("\n", $chargeError->getErrors()), true);
+        if (!$chargeBaseResult->isOk()) {
+            \XF::logError(implode("\n", $chargeBaseResult->getErrors()), true);
             throw $controller->exception($controller->error(\XF::phrase('something_went_wrong_please_try_again')));
         }
 
-        /** @var Sdk\ChargeOk $chargeOk */
-        $chargeOk = $chargeResult;
-        $transactionId = $chargeOk->getTransactionId();
+        /** @var Sdk\ChargeResult $chargeResult */
+        $chargeResult = $chargeBaseResult;
+        $transactionId = $chargeResult->getTransId();
+
+        if ($purchase->recurring) {
+            try {
+                $customerProfile = Sdk::createCustomerProfileFromTransaction($paymentProfile, $chargeResult);
+                if ($customerProfile->isOk()) {
+                    $subscribeBaseResult = Sdk::subscribe($paymentProfile, $purchase, $customerProfile);
+
+                    if (!$subscribeBaseResult->isOk()) {
+                        \XF::logError(implode(', ', $subscribeBaseResult->getErrors()));
+                    } else {
+                        /** @var Sdk\SubscribeResult $subscribeResult */
+                        $subscribeResult = $subscribeBaseResult;
+                        $subId = $subscribeResult->getSubscriptionId();
+                    }
+                }
+            } catch (\Exception $e) {
+                \XF::logException($e);
+            }
+        }
 
         $paymentRepo->logCallback(
             $purchaseRequest->request_key,
@@ -109,12 +168,25 @@ class Provider extends AbstractProvider
             'info',
             'Authorize.Net charge ok',
             [
-                'charge' => $chargeOk->toArray()
+                'charge' => $chargeResult->toArray()
             ],
             $subId
         );
 
         return $controller->redirect($purchase->returnUrl);
+    }
+
+    public function renderCancellation(\XF\Entity\UserUpgradeActive $active)
+    {
+        $data = [
+            'active' => $active,
+            'purchaseRequest' => $active->PurchaseRequest
+        ];
+
+        return \XF::app()->templater()->renderTemplate(
+            'public:Xfrocks_AuthorizeNetArb_payment_cancel_recurring',
+            $data
+        );
     }
 
     public function setupCallback(\XF\Http\Request $request)
