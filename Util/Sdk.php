@@ -6,6 +6,7 @@ use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use net\authorize\api\constants as AnetConstants;
 use XF\Entity\PaymentProfile;
+use XF\Entity\PurchaseRequest;
 use XF\Purchasable\Purchase;
 use XF\Util\File;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\BaseResult;
@@ -13,7 +14,6 @@ use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeBaseResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\CreateCustomerProfileResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\SubscribeResult;
-use Xfrocks\AuthorizeNetArb\Util\Sdk\GetTransactionResult;
 
 class Sdk
 {
@@ -103,6 +103,7 @@ class Sdk
     }
 
     /**
+     * @param PurchaseRequest $purchaseRequest
      * @param PaymentProfile $paymentProfile
      * @param Purchase $purchase
      * @param string $opaqueDataJson
@@ -110,23 +111,45 @@ class Sdk
      * @return ChargeBaseResult|ChargeResult
      * @throws \Exception
      */
-    public static function charge($paymentProfile, $purchase, $opaqueDataJson, array $inputs)
+    public static function charge($purchaseRequest, $paymentProfile, $purchase, $opaqueDataJson, array $inputs)
     {
         self::autoload();
 
         $customerAddress = new AnetAPI\CustomerAddressType();
-        if (!empty($inputs['address'])) {
-            $customerAddress->setAddress($inputs['address']);
-            if (!empty($inputs['city'])) {
-                $customerAddress->setCity($inputs['city']);
-            }
-            if (!empty($inputs['state'])) {
-                $customerAddress->setState($inputs['state']);
-            }
-        } else {
+        $customerAddressHasData = false;
+        if (isset($inputs['first_name']) && isset($inputs['last_name'])) {
+            $customerAddress->setFirstName($inputs['first_name']);
+            $customerAddress->setLastName($inputs['last_name']);
+            $customerAddressHasData = true;
+        } elseif ($purchase->recurring) {
+            // names are required for ARB subscriptions
             $customerAddress->setFirstName('John');
             $customerAddress->setLastName('Appleseed');
+            $customerAddressHasData = true;
         }
+        if (isset($inputs['address']) && isset($inputs['city']) && isset($inputs['state']) && isset($inputs['zip'])) {
+            $customerAddress->setAddress($inputs['address']);
+            $customerAddress->setCity($inputs['city']);
+            $customerAddress->setState($inputs['state']);
+            $customerAddress->setZip($inputs['zip']);
+            $customerAddressHasData = true;
+        }
+
+        $customerData = new AnetAPI\CustomerDataType();
+        $customerDataHasData = false;
+        $visitor = \XF::visitor();
+        if ($visitor->user_id > 0) {
+            $customerData->setId($visitor->user_id);
+            $customerDataHasData = true;
+        }
+        if (isset($inputs['email'])) {
+            $customerData->setEmail($inputs['email']);
+            $customerDataHasData = true;
+        }
+
+        $order = new AnetAPI\OrderType();
+        $order->setInvoiceNumber($purchaseRequest->purchase_request_id);
+        $order->setDescription($purchase->title);
 
         $opaqueDataArray = @json_decode($opaqueDataJson, true);
         if (!is_array($opaqueDataArray)) {
@@ -141,15 +164,15 @@ class Sdk
 
         $transactionRequest = new AnetAPI\TransactionRequestType();
         $transactionRequest->setAmount($purchase->cost);
-        $transactionRequest->setBillTo($customerAddress);
-        $transactionRequest->setPayment($payment);
-        $transactionRequest->setTransactionType('authCaptureTransaction');
-
-        if (!empty($inputs['email'])) {
-            $customerData = new AnetAPI\CustomerDataType();
-            $customerData->setEmail($inputs['email']);
+        if ($customerAddressHasData) {
+            $transactionRequest->setBillTo($customerAddress);
+        }
+        if ($customerDataHasData) {
             $transactionRequest->setCustomer($customerData);
         }
+        $transactionRequest->setOrder($order);
+        $transactionRequest->setPayment($payment);
+        $transactionRequest->setTransactionType('authCaptureTransaction');
 
         $request = new AnetAPI\CreateTransactionRequest();
         $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));

@@ -18,4 +18,9 @@ class SubscribeResult extends BaseResult
 
         return $apiResponse->getSubscriptionId();
     }
+
+    public function toArray()
+    {
+        return (array)$this->apiResponse;
+    }
 }

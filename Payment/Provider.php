@@ -118,34 +118,68 @@ class Provider extends AbstractProvider
         PaymentProfile $paymentProfile,
         Purchase $purchase
     ) {
+        $ppOptions = $paymentProfile->options;
         $opaqueDataJson = $controller->filter('opaque_data', 'str');
-        $inputs = $controller->filter([
-            'email' => 'str',
-            'address' => 'str',
-            'city' => 'str',
-            'state' => 'str',
-        ]);
+        if (empty($opaqueDataJson)) {
+            throw $controller->exception($controller->error(\XF::phrase('something_went_wrong_please_try_again')));
+        }
+
+        $inputFilters = [];
+        if (!empty($ppOptions['require_names'])) {
+            $inputFilters['first_name'] = 'str';
+            $inputFilters['last_name'] = 'str';
+        }
+        if (!empty($ppOptions['require_email'])) {
+            $inputFilters['email'] = 'str';
+        }
+        if (!empty($ppOptions['require_address'])) {
+            $inputFilters['address'] = 'str';
+            $inputFilters['city'] = 'str';
+            $inputFilters['state'] = 'str';
+            $inputFilters['zip'] = 'str';
+        }
+        $inputs = $controller->filter($inputFilters);
+        foreach (array_keys($inputFilters) as $inputKey) {
+            if (!empty($inputs[$inputKey])) {
+                continue;
+            }
+
+            switch ($inputKey) {
+                case 'email':
+                    $fieldPhrase = \XF::phrase($inputKey);
+                    break;
+                default:
+                    $fieldPhrase = \XF::phrase('Xfrocks_AuthorizeNetArb_' . $inputKey);
+            }
+
+            $phrase = \XF::phrase('please_enter_value_for_required_field_x', ['field' => $fieldPhrase]);
+            throw $controller->exception($controller->error($phrase));
+        }
 
         /** @var Payment $paymentRepo */
         $paymentRepo = \XF::repository('XF:Payment');
         $transactionId = null;
         $subId = null;
 
-        $chargeBaseResult = Sdk::charge($paymentProfile, $purchase, $opaqueDataJson, $inputs);
+        $chargeBaseResult = Sdk::charge($purchaseRequest, $paymentProfile, $purchase, $opaqueDataJson, $inputs);
 
         if (!$chargeBaseResult->isOk()) {
-            \XF::logError(implode("\n", $chargeBaseResult->getErrors()), true);
+            \XF::logError(implode("\n", $chargeBaseResult->getErrors()));
             throw $controller->exception($controller->error(\XF::phrase('something_went_wrong_please_try_again')));
         }
 
         /** @var Sdk\ChargeResult $chargeResult */
         $chargeResult = $chargeBaseResult;
         $transactionId = $chargeResult->getTransId();
+        $logMessage = 'Authorize.Net charge ok';
+        $logDetails = ['charge' => $chargeResult->toArray()];
 
+        $subscribeResult = null;
         if ($purchase->recurring) {
             try {
                 $customerProfile = Sdk::createCustomerProfileFromTransaction($paymentProfile, $chargeResult);
                 if ($customerProfile->isOk()) {
+                    $logDetails['customerProfile'] = $customerProfile->toArray();
                     $subscribeBaseResult = Sdk::subscribe($paymentProfile, $purchase, $customerProfile);
 
                     if (!$subscribeBaseResult->isOk()) {
@@ -154,6 +188,8 @@ class Provider extends AbstractProvider
                         /** @var Sdk\SubscribeResult $subscribeResult */
                         $subscribeResult = $subscribeBaseResult;
                         $subId = $subscribeResult->getSubscriptionId();
+                        $logMessage = 'Authorize.Net charge + subscribe ok';
+                        $logDetails['subscribe'] = $subscribeResult->toArray();
                     }
                 }
             } catch (\Exception $e) {
@@ -166,10 +202,8 @@ class Provider extends AbstractProvider
             $this->providerId,
             $transactionId,
             'info',
-            'Authorize.Net charge ok',
-            [
-                'charge' => $chargeResult->toArray()
-            ],
+            $logMessage,
+            $logDetails,
             $subId
         );
 

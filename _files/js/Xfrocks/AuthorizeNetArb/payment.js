@@ -71,8 +71,6 @@
             fill(cardData, 'month');
             fill(cardData, 'year');
             fill(cardData, 'cardCode', 'card-code');
-            fill(cardData, 'fullName', 'full-name');
-            fill(cardData, 'zip');
             secureData.cardData = cardData;
 
             authData.apiLoginID = this.options.apiLoginId;

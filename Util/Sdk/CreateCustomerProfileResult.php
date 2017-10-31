@@ -21,6 +21,11 @@ class CreateCustomerProfileResult extends BaseResult
         return true;
     }
 
+    public function toArray()
+    {
+        return (array)$this->getCustomerProfileResponse();
+    }
+
     /**
      * @return AnetAPI\CreateCustomerProfileResponse
      */
