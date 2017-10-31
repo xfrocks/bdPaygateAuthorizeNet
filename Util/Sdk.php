@@ -19,6 +19,8 @@ class Sdk
 {
     const RESPONSE_OK = 'Ok';
 
+    const SUBSCRIBE_MAX_ATTEMPTS = 3;
+
     const WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE = 'net.authorize.payment.authcapture.created';
     const WEBHOOK_EVENT_TYPE_CAPTURE = 'net.authorize.payment.capture.created';
     const WEBHOOK_EVENT_TYPE_PRIOR_AUTH_CAPTURE = 'net.authorize.payment.priorAuthCapture.created';
@@ -104,14 +106,13 @@ class Sdk
 
     /**
      * @param PurchaseRequest $purchaseRequest
-     * @param PaymentProfile $paymentProfile
      * @param Purchase $purchase
      * @param string $opaqueDataJson
      * @param array $inputs
      * @return ChargeBaseResult|ChargeResult
      * @throws \Exception
      */
-    public static function charge($purchaseRequest, $paymentProfile, $purchase, $opaqueDataJson, array $inputs)
+    public static function charge($purchaseRequest, $purchase, $opaqueDataJson, array $inputs)
     {
         self::autoload();
 
@@ -175,7 +176,7 @@ class Sdk
         $transactionRequest->setTransactionType('authCaptureTransaction');
 
         $request = new AnetAPI\CreateTransactionRequest();
-        $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
+        $request->setMerchantAuthentication(self::newMerchantAuthentication($purchaseRequest->PaymentProfile));
         $request->setTransactionRequest($transactionRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
@@ -220,28 +221,44 @@ class Sdk
     }
 
     /**
-     * @param PaymentProfile $paymentProfile
+     * @param PurchaseRequest $purchaseRequest
      * @param Purchase $purchase
      * @param CreateCustomerProfileResult $customerProfile
-     * @param int $retries
+     * @param int $attemptId
      * @return BaseResult|SubscribeResult
      */
-    public static function subscribe($paymentProfile, $purchase, $customerProfile, $retries = 3)
+    public static function subscribe($purchaseRequest, $purchase, $customerProfile, $attemptId = 0)
     {
         self::autoload();
 
         self::assertRecurringLength($purchase->lengthAmount, $purchase->lengthUnit);
+
+        $enableLivePayments = !!\XF::config('enableLivePayments');
+        $paymentProfile = $purchaseRequest->PaymentProfile;
+
+        $order = new AnetAPI\OrderType();
+        $invoiceNumber = $purchaseRequest->purchase_request_id;
+        if ($attemptId > 0) {
+            $invoiceNumber .= sprintf(':%d', $attemptId);
+        }
+        $order->setInvoiceNumber($invoiceNumber);
+        $order->setDescription($purchase->title);
 
         $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
         $interval->setLength($purchase->lengthAmount);
         $interval->setUnit($purchase->lengthUnit . 's');
 
         $startDate = new \DateTime();
-        $startDate->add(new \DateInterval(sprintf(
-            'P%d%s',
-            $purchase->lengthAmount,
-            strtoupper(substr($purchase->lengthUnit, 0, 1))
-        )));
+        if ($enableLivePayments) {
+            $startDate->add(new \DateInterval(sprintf(
+                'P%d%s',
+                $purchase->lengthAmount,
+                strtoupper(substr($purchase->lengthUnit, 0, 1))
+            )));
+        } else {
+            // Sandbox environment: start subscription the next day (for testing)
+            $startDate->add(new \DateInterval('P1D'));
+        }
 
         $paymentSchedule = new AnetAPI\PaymentScheduleType();
         $paymentSchedule->setInterval($interval);
@@ -254,6 +271,7 @@ class Sdk
 
         $subscription = new AnetAPI\ARBSubscriptionType();
         $subscription->setAmount($purchase->cost);
+        $subscription->setOrder($order);
         $subscription->setPaymentSchedule($paymentSchedule);
         $subscription->setProfile($apiCustomerProfile);
 
@@ -277,16 +295,16 @@ class Sdk
                 $shouldRetry = true;
             }
 
-            if ($shouldRetry && $retries > 0) {
-                if (!\XF::config('enableLivePayments')) {
+            if ($shouldRetry && $attemptId < self::SUBSCRIBE_MAX_ATTEMPTS) {
+                if ($enableLivePayments) {
+                    sleep(1);
+                } else {
                     // Sandbox environment is a bit slow. Creating a new subscription immediately after
                     // creating a customer profile may trigger error 40 (The record cannot be found.)
-                    sleep(15);
-                } else {
-                    sleep(1);
+                    sleep(20);
                 }
 
-                return self::subscribe($paymentProfile, $purchase, $customerProfile, $retries - 1);
+                return self::subscribe($purchaseRequest, $purchase, $customerProfile, $attemptId + 1);
             }
 
             return $baseResult;

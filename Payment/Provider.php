@@ -156,56 +156,59 @@ class Provider extends AbstractProvider
             throw $controller->exception($controller->error($phrase));
         }
 
-        /** @var Payment $paymentRepo */
-        $paymentRepo = \XF::repository('XF:Payment');
-        $transactionId = null;
-        $subId = null;
+        $chargeResult = Sdk::charge($purchaseRequest, $purchase, $opaqueDataJson, $inputs);
 
-        $chargeBaseResult = Sdk::charge($purchaseRequest, $paymentProfile, $purchase, $opaqueDataJson, $inputs);
+        if (!$chargeResult->isOk()) {
+            $chargeErrors = $chargeResult->getTransactionErrors();
+            if (count($chargeErrors) > 0) {
+                $errorPhrase = \XF::phrase('Xfrocks_AuthorizeNetArb_charge_errors_x', [
+                    'errors' => implode('</li><li>', $chargeErrors)
+                ]);
+                throw $controller->exception($controller->error($errorPhrase));
+            }
 
-        if (!$chargeBaseResult->isOk()) {
-            \XF::logError(implode("\n", $chargeBaseResult->getErrors()));
+            \XF::logError(implode("\n", $chargeResult->getErrors()));
             throw $controller->exception($controller->error(\XF::phrase('something_went_wrong_please_try_again')));
         }
 
-        /** @var Sdk\ChargeResult $chargeResult */
-        $chargeResult = $chargeBaseResult;
-        $transactionId = $chargeResult->getTransId();
-        $logMessage = 'Authorize.Net charge ok';
-        $logDetails = ['charge' => $chargeResult->toArray()];
+        /** @var Payment $paymentRepo */
+        $paymentRepo = \XF::repository('XF:Payment');
+        $paymentRepo->logCallback(
+            $purchaseRequest->request_key,
+            $this->getProviderId(),
+            $chargeResult->getTransId(),
+            'info',
+            'Authorize.Net charge ok',
+            ['charge' => $chargeResult->toArray()]
+        );
 
-        $subscribeResult = null;
         if ($purchase->recurring) {
             try {
                 $customerProfile = Sdk::createCustomerProfileFromTransaction($paymentProfile, $chargeResult);
                 if ($customerProfile->isOk()) {
-                    $logDetails['customerProfile'] = $customerProfile->toArray();
-                    $subscribeBaseResult = Sdk::subscribe($paymentProfile, $purchase, $customerProfile);
+                    $subscribeResult = Sdk::subscribe($purchaseRequest, $purchase, $customerProfile);
 
-                    if (!$subscribeBaseResult->isOk()) {
-                        \XF::logError(implode(', ', $subscribeBaseResult->getErrors()));
+                    if (!$subscribeResult->isOk()) {
+                        \XF::logError(implode(', ', $subscribeResult->getErrors()));
                     } else {
-                        /** @var Sdk\SubscribeResult $subscribeResult */
-                        $subscribeResult = $subscribeBaseResult;
-                        $subId = $subscribeResult->getSubscriptionId();
-                        $logMessage = 'Authorize.Net charge + subscribe ok';
-                        $logDetails['subscribe'] = $subscribeResult->toArray();
+                        $paymentRepo->logCallback(
+                            $purchaseRequest->request_key,
+                            $this->getProviderId(),
+                            $chargeResult->getTransId(),
+                            'info',
+                            'Authorize.Net subscribe ok',
+                            [
+                                'customerProfile' => $customerProfile->toArray(),
+                                'subscribe' => $subscribeResult->toArray()
+                            ],
+                            $subscribeResult->getSubscriptionId()
+                        );
                     }
                 }
             } catch (\Exception $e) {
                 \XF::logException($e);
             }
         }
-
-        $paymentRepo->logCallback(
-            $purchaseRequest->request_key,
-            $this->providerId,
-            $transactionId,
-            'info',
-            $logMessage,
-            $logDetails,
-            $subId
-        );
 
         return $controller->redirect($purchase->returnUrl);
     }

@@ -6,7 +6,7 @@ use net\authorize\api\contract\v1 as AnetAPI;
 
 class ChargeBaseResult extends BaseResult
 {
-    public function getErrors()
+    public function getTransactionErrors()
     {
         $errorTexts = [];
 
@@ -19,10 +19,6 @@ class ChargeBaseResult extends BaseResult
             }
 
             $errorTexts[$errorId] = $error->getErrorText();
-        }
-
-        if (count($errorTexts) === 0) {
-            return parent::getErrors();
         }
 
         return $errorTexts;

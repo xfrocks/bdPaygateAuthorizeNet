@@ -31,16 +31,26 @@
 
             this.$target.bind({
                 'ajax-submit:before': $.proxy(this, 'onBeforeAjaxSubmit'),
+                'ajax-submit:always': $.proxy(this, 'onBeforeAjaxAlways'),
                 'submit': $.proxy(this, 'onSubmit')
             });
         },
 
-        onBeforeAjaxSubmit: function (e) {
+        onBeforeAjaxSubmit: function (e, config) {
+            // increase AJAX timeout to account for slow api requests
+            config.ajaxOptions.timeout = 90000;
+
             if (this.$hiddenInput.val()) {
                 return true;
             }
 
             e.preventDefault();
+        },
+
+        onBeforeAjaxAlways: function () {
+            // reset Accept.js data to avoid "Invalid OTS Token." error
+            // assuming server always consumes the token upon submission
+            this.$hiddenInput.val('');
         },
 
         onSubmit: function (e) {
