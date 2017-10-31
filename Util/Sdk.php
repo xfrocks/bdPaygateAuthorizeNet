@@ -13,6 +13,7 @@ use Xfrocks\AuthorizeNetArb\Util\Sdk\BaseResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeBaseResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\CreateCustomerProfileResult;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\GetTransactionDetailsResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\SubscribeResult;
 
 class Sdk
@@ -215,6 +216,31 @@ class Sdk
 
         if ($apiResponse->getMessages()->getResultCode() == self::RESPONSE_OK) {
             return new CreateCustomerProfileResult($apiResponse);
+        } else {
+            return new BaseResult($apiResponse);
+        }
+    }
+
+    /**
+     * @param PaymentProfile $paymentProfile
+     * @param string $transId
+     * @return GetTransactionDetailsResult|BaseResult
+     */
+    public static function getTransactionDetails($paymentProfile, $transId)
+    {
+        self::autoload();
+
+        $request = new AnetApi\GetTransactionDetailsRequest();
+        $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
+        $request->setTransId($transId);
+
+        $controller = new AnetController\GetTransactionDetailsController($request);
+
+        /** @var AnetApi\CreateCustomerProfileResponse $apiResponse */
+        $apiResponse = self::chooseEndpointAndExecute($controller);
+
+        if ($apiResponse->getMessages()->getResultCode() == self::RESPONSE_OK) {
+            return new GetTransactionDetailsResult($apiResponse);
         } else {
             return new BaseResult($apiResponse);
         }

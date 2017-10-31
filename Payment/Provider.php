@@ -3,6 +3,7 @@
 namespace Xfrocks\AuthorizeNetArb\Payment;
 
 use XF\Entity\PaymentProfile;
+use XF\Entity\PaymentProviderLog;
 use XF\Entity\PurchaseRequest;
 use XF\Mvc\Controller;
 use XF\Payment\AbstractProvider;
@@ -68,6 +69,12 @@ class Provider extends AbstractProvider
     {
         /** @noinspection PhpUndefinedFieldInspection */
         $state->logDetails = $state->payload;
+
+        /** @noinspection PhpUndefinedFieldInspection */
+        if ($state->apiTransaction) {
+            /** @noinspection PhpUndefinedFieldInspection */
+            $state->logDetails['apiTransaction'] = $state->apiTransaction;
+        }
     }
 
     public function processCancellation(
@@ -300,6 +307,30 @@ class Provider extends AbstractProvider
                 }
 
                 $state->requestKey = $infoLog->purchase_request_key;
+            }
+        }
+
+        if ($state->transactionId && !$state->requestKey) {
+            $transaction = Sdk::getTransactionDetails($paymentProfile, $state->transactionId);
+            if ($transaction->isOk()) {
+                /** @noinspection PhpUndefinedFieldInspection */
+                $state->apiTransaction = $transaction->toArray();
+
+                $subscriptionId = $transaction->getSubscriptionId();
+                if (!empty($subscriptionId)) {
+                    $state->subscriberId = $subscriptionId;
+
+                    /** @var PaymentProviderLog $providerLog */
+                    $providerLog = \XF::em()->findOne('XF:PaymentProviderLog', [
+                        'subscriber_id' => $subscriptionId,
+                        'provider_id' => $this->getProviderId()
+                    ]);
+                    if ($providerLog) {
+                        $state->requestKey = $providerLog->purchase_request_key;
+                    }
+                }
+            } else {
+                \XF::logError(implode(', ', $transaction->getErrors()));
             }
         }
 
