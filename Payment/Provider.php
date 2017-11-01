@@ -295,6 +295,10 @@ class Provider extends AbstractProvider
         if ($paymentProfile === null) {
             $state->logType = 'error';
             $state->logMessage = 'Webhook data cannot be trusted / verified.';
+
+            // this is required for webhook creation
+            $state->httpCode = 200;
+
             return false;
         }
         $state->paymentProfile = $paymentProfile;

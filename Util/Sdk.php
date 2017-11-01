@@ -2,6 +2,7 @@
 
 namespace Xfrocks\AuthorizeNetArb\Util;
 
+use GuzzleHttp\Exception\RequestException;
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use net\authorize\api\constants as AnetConstants;
@@ -37,11 +38,7 @@ class Sdk
     {
         self::autoload();
 
-        $client = \XF::app()->http()->client();
         $url = self::getEndpoint() . '/rest/v1/webhooks';
-        $options = [
-            'auth' => [$apiLoginId, $transactionKey],
-        ];
         $eventTypes = [
             self::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE,
             self::WEBHOOK_EVENT_TYPE_CAPTURE,
@@ -51,9 +48,7 @@ class Sdk
         $existingWebhook = null;
         $existingEventTypes = [];
 
-        $listResponse = $client->get($url, $options);
-        $webhooks = $listResponse->json();
-
+        $webhooks = self::createHttpRequestAndSend($apiLoginId, $transactionKey, $url);
         if (!empty($webhooks)) {
             foreach ($webhooks as $webhook) {
                 if ($webhook['url'] === $callbackUrl) {
@@ -78,27 +73,19 @@ class Sdk
             return;
         }
 
-        $newWebhookData = [
+        $json = [
             'url' => $callbackUrl,
             'eventTypes' => $eventTypes,
             'status' => 'active',
         ];
         if ($existingWebhook === null) {
-            $createResponse = $client->post($url, array_merge($options, [
-                'json' => $newWebhookData
-            ]));
-
-            $newWebhook = $createResponse->json();
+            $newWebhook = self::createHttpRequestAndSend($apiLoginId, $transactionKey, $url, 'POST', $json);
             if (empty($newWebhook['webhookId'])) {
                 throw new \Exception('Webhook cannot be created');
             }
         } else {
             $updateUrl = self::getEndpoint() . $existingWebhook['_links']['self']['href'];
-            $updateResponse = $client->put($updateUrl, array_merge($options, [
-                'json' => $newWebhookData
-            ]));
-
-            $updatedWebhook = $updateResponse->json();
+            $updatedWebhook = self::createHttpRequestAndSend($apiLoginId, $transactionKey, $updateUrl, 'PUT', $json);
             if (empty($updatedWebhook['webhookId'])) {
                 throw new \Exception('Webhook cannot be updated');
             }
@@ -426,6 +413,59 @@ class Sdk
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $apiLoginId
+     * @param string $transactionKey
+     * @param string $url
+     * @param string $method
+     * @param array|null $json
+     * @return mixed
+     */
+    private static function createHttpRequestAndSend(
+        $apiLoginId,
+        $transactionKey,
+        $url,
+        $method = 'GET',
+        array $json = null
+    ) {
+        $client = \XF::app()->http()->client();
+
+        $exception = null;
+        $response = null;
+
+        $options = [
+            'auth' => [$apiLoginId, $transactionKey],
+        ];
+        if (is_array($json)) {
+            $options['json'] = $json;
+        }
+
+        try {
+            $response = $client->send($client->createRequest($method, $url, $options));
+        } catch (RequestException $e) {
+            $exception = $e;
+            $response = $e->getResponse();
+        }
+
+        if (\XF::$debugMode) {
+            File::log('authorizenet', sprintf(
+                '%s $client->%s(%s, %s): %d %s',
+                __METHOD__,
+                $method,
+                $url,
+                json_encode($options),
+                $response->getStatusCode(),
+                $response->getBody()
+            ));
+        }
+
+        if ($exception !== null) {
+            throw $exception;
+        }
+
+        return $response->json();
     }
 
     private static function getEndpoint()
