@@ -14,6 +14,8 @@
   <phrase title="Xfrocks_AuthorizeNetArb_first_name" version_id="1000000" version_string="1.0.0"><![CDATA[First Name]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_full_name" version_id="1000000" version_string="1.0.0"><![CDATA[Full Name]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_last_name" version_id="1000000" version_string="1.0.0"><![CDATA[Last Name]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_progress_text_preparing" version_id="1000070" version_string="1.0.0"><![CDATA[Preparing payment profile...]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_progress_text_processing" version_id="1000070" version_string="1.0.0"><![CDATA[Processing payment...]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_public_client_key" version_id="1000000" version_string="1.0.0"><![CDATA[Public Client Key]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_public_client_key_explain" version_id="1000000" version_string="1.0.0"><![CDATA[This can be obtained in Authorize.Net Merchant Interface: Account > Settings > Security Settings > General Security Settings > Manage Public Client Key. You will need to enter your answer to the secret question to create a new key.]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_require_address" version_id="1000000" version_string="1.0.0"><![CDATA[Require address (including city, state and country)]]></phrase>

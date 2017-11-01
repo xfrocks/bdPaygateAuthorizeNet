@@ -5,9 +5,11 @@
 
         options: {
             apiLoginId: null,
-            publicClientKey: null,
-
-            hiddenInputSelector: '[name=opaque_data]'
+            hiddenInputSelector: '[name=opaque_data]',
+            phrasePreparing: null,
+            phraseProcessing: null,
+            progressTextSelector: null,
+            publicClientKey: null
         },
 
         xhr: null,
@@ -29,6 +31,8 @@
                 return;
             }
 
+            this.$progressText = this.$target.find(this.options.progressTextSelector);
+
             this.$target.bind({
                 'ajax-submit:before': $.proxy(this, 'onBeforeAjaxSubmit'),
                 'ajax-submit:always': $.proxy(this, 'onBeforeAjaxAlways'),
@@ -41,6 +45,8 @@
             config.ajaxOptions.timeout = 90000;
 
             if (this.$hiddenInput.val()) {
+                this.$progressText.text(this.options.phraseProcessing);
+
                 return true;
             }
 
@@ -51,6 +57,8 @@
             // reset Accept.js data to avoid "Invalid OTS Token." error
             // assuming server always consumes the token upon submission
             this.$hiddenInput.val('');
+
+            this.$progressText.text('');
         },
 
         onSubmit: function (e) {
@@ -87,6 +95,9 @@
             authData.clientKey = this.options.publicClientKey;
             secureData.authData = authData;
 
+            this._callAjaxSubmit('disableButtons');
+            this.$progressText.text(this.options.phrasePreparing);
+
             // noinspection JSUnresolvedFunction
             Accept.dispatchData(secureData, $.proxy(this, 'onAcceptJsResponse'));
 
@@ -94,6 +105,8 @@
         },
 
         onAcceptJsResponse: function (response) {
+            this.$progressText.text('');
+
             // noinspection JSUnresolvedVariable
             if (response.messages && response.messages.resultCode === "Error") {
                 // noinspection JSUnresolvedVariable
@@ -113,9 +126,26 @@
             // noinspection JSUnresolvedVariable
             this.$hiddenInput.val(JSON.stringify(response.opaqueData));
 
-            var handlers = this.$target.data('xf-element-handlers');
+            var that = this;
+            window.setTimeout(function () {
+                that._callAjaxSubmit('submit');
+            }, 0);
+        },
 
-            handlers['ajax-submit'].submit();
+        /**
+         * @param method string
+         * @param args array
+         * @private
+         *
+         * @see XF.AjaxSubmit
+         */
+        _callAjaxSubmit: function (method, args) {
+            var handlers = this.$target.data('xf-element-handlers');
+            if (handlers['ajax-submit'] === _undefined) {
+                return;
+            }
+
+            return handlers['ajax-submit'][method].apply(handlers['ajax-submit'], args);
         }
     });
 

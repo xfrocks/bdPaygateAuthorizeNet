@@ -6,7 +6,7 @@
 		{{ phrase('button.cancel') }}
 	</xf:button>
 </div>]]></template>
-  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1000000" version_string="1.0.0"><![CDATA[<xf:css src="payment_initiate.less"/>
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1000070" version_string="1.0.0"><![CDATA[<xf:css src="payment_initiate.less"/>
 <xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb"/>
 
 <xf:title>{{ phrase('enter_payment_details') }}</xf:title>
@@ -21,6 +21,9 @@
     <xf:form action="{{ link('purchase/process', null, {'request_key': $purchaseRequest.request_key}) }}"
              class="block block--paymentInitiate" data-xf-init="authorizenet-payment-form ajax-submit"
              data-api-login-id="{$paymentProfile.options.api_login_id}"
+             data-phrase-preparing="{{ phrase('Xfrocks_AuthorizeNetArb_progress_text_preparing') }}"
+             data-phrase-processing="{{ phrase('Xfrocks_AuthorizeNetArb_progress_text_processing') }}"
+             data-progress-text-selector=".progressText"
              data-public-client-key="{$paymentProfile.options.public_client_key}">
         <div class="block-container">
             <div class="block-body">
@@ -118,6 +121,8 @@
                     <xf:button type="submit" icon="payment">
                         {{ phrase('pay_x', {'cost': $purchase.cost|currency($purchase.currency)}) }}
                     </xf:button>
+
+                    <div class="formRow-explain progressText"></div>
                 </xf:formrow>
             </div>
         </div>
