@@ -23,7 +23,7 @@ class Provider extends AbstractProvider
             }
         }
 
-        return parent::getCallbackUrl();
+        return \XF::app()->options()->boardUrl . '/payment_callback_authorizenet.php';
     }
 
     public function getPaymentResult(CallbackState $state)
