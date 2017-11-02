@@ -8,12 +8,30 @@ class GetTransactionDetailsResult extends BaseResult
 {
     public function isOk()
     {
-        return true;
+        return $this->getTransaction()->getResponseCode() === 1;
+    }
+
+    public function getReversedTransId()
+    {
+        $transaction = $this->getTransaction();
+
+        switch ($transaction->getTransactionType()) {
+            case 'refundTransaction':
+                return $transaction->getRefTransId();
+        }
+
+        return null;
     }
 
     public function getSubscriptionId()
     {
-        $subscription = $this->getTransaction()->getSubscription();
+        $transaction = $this->getTransaction();
+
+        if (!$transaction->getRecurringBilling()) {
+            return null;
+        }
+
+        $subscription = $transaction->getSubscription();
         if (empty($subscription)) {
             return null;
         }

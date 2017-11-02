@@ -28,17 +28,14 @@ class Provider extends AbstractProvider
 
     public function getPaymentResult(CallbackState $state)
     {
-        /** @noinspection PhpUndefinedFieldInspection */
-        switch ($state->eventType) {
-            case Sdk::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE:
-            case Sdk::WEBHOOK_EVENT_TYPE_CAPTURE:
-            case Sdk::WEBHOOK_EVENT_TYPE_PRIOR_AUTH_CAPTURE:
-                $state->paymentResult = CallbackState::PAYMENT_RECEIVED;
-                break;
+        if (!empty($state->reversedTransId)) {
+            $state->paymentResult = CallbackState::PAYMENT_REVERSED;
+            return;
+        }
 
-            case Sdk::WEBHOOK_EVENT_TYPE_REFUND:
-                $state->paymentResult = CallbackState::PAYMENT_REVERSED;
-                break;
+        if (!empty($state->eventType) && $state->eventType === Sdk::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE) {
+            $state->paymentResult = CallbackState::PAYMENT_RECEIVED;
+            return;
         }
     }
 
@@ -67,12 +64,15 @@ class Provider extends AbstractProvider
 
     public function prepareLogData(CallbackState $state)
     {
-        /** @noinspection PhpUndefinedFieldInspection */
-        $state->logDetails = $state->payload;
+        if (empty($state->logDetails)) {
+            $state->logDetails = [];
+        }
 
-        /** @noinspection PhpUndefinedFieldInspection */
-        if ($state->apiTransaction) {
-            /** @noinspection PhpUndefinedFieldInspection */
+        if (!empty($state->inputRaw)) {
+            $state->logDetails['inputRaw'] = $state->inputRaw;
+        }
+
+        if (!empty($state->apiTransaction)) {
             $state->logDetails['apiTransaction'] = $state->apiTransaction;
         }
     }
@@ -254,15 +254,12 @@ class Provider extends AbstractProvider
         /** @noinspection PhpUndefinedFieldInspection */
         $state->eventType = $filtered['eventType'];
 
-        /** @noinspection PhpUndefinedFieldInspection */
-        $state->payload = $payload = $filtered['payload'];
-        if (empty($payload)) {
+        if (empty($filtered['payload']) || empty($filtered['payload']['entityName'])) {
             return $state;
         }
-
-        switch ($payload['entityName']) {
+        switch ($filtered['payload']['entityName']) {
             case 'transaction':
-                $state->transactionId = $payload['id'];
+                $state->transactionId = $filtered['payload']['id'];
                 break;
         }
 
@@ -331,6 +328,24 @@ class Provider extends AbstractProvider
                     ]);
                     if ($providerLog) {
                         $state->requestKey = $providerLog->purchase_request_key;
+                    }
+                }
+
+                if (!$state->requestKey) {
+                    $reversedTransId = $transaction->getReversedTransId();
+
+                    if (!empty($reversedTransId)) {
+                        $infoLogs = $paymentRepo->findLogsByTransactionId($reversedTransId, 'info');
+                        foreach ($infoLogs as $infoLog) {
+                            if ($infoLog->provider_id !== $this->getProviderId()) {
+                                continue;
+                            }
+
+                            /** @noinspection PhpUndefinedFieldInspection */
+                            $state->reversedTransId = $reversedTransId;
+
+                            $state->requestKey = $infoLog->purchase_request_key;
+                        }
                     }
                 }
             } else {

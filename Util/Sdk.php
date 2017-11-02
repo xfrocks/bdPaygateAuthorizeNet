@@ -24,8 +24,6 @@ class Sdk
     const SUBSCRIBE_MAX_ATTEMPTS = 3;
 
     const WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE = 'net.authorize.payment.authcapture.created';
-    const WEBHOOK_EVENT_TYPE_CAPTURE = 'net.authorize.payment.capture.created';
-    const WEBHOOK_EVENT_TYPE_PRIOR_AUTH_CAPTURE = 'net.authorize.payment.priorAuthCapture.created';
     const WEBHOOK_EVENT_TYPE_REFUND = 'net.authorize.payment.refund.created';
 
     /**
@@ -41,8 +39,6 @@ class Sdk
         $url = self::getEndpoint() . '/rest/v1/webhooks';
         $eventTypes = [
             self::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE,
-            self::WEBHOOK_EVENT_TYPE_CAPTURE,
-            self::WEBHOOK_EVENT_TYPE_PRIOR_AUTH_CAPTURE,
             self::WEBHOOK_EVENT_TYPE_REFUND,
         ];
         $existingWebhook = null;
