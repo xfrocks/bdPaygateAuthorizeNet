@@ -25,6 +25,7 @@ class Sdk
 
     const WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE = 'net.authorize.payment.authcapture.created';
     const WEBHOOK_EVENT_TYPE_REFUND = 'net.authorize.payment.refund.created';
+    const WEBHOOK_EVENT_TYPE_VOID = 'net.authorize.payment.void.created';
 
     /**
      * @param string $apiLoginId
@@ -40,6 +41,7 @@ class Sdk
         $eventTypes = [
             self::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE,
             self::WEBHOOK_EVENT_TYPE_REFUND,
+            self::WEBHOOK_EVENT_TYPE_VOID,
         ];
         $existingWebhook = null;
         $existingEventTypes = [];

@@ -308,6 +308,12 @@ class Provider extends AbstractProvider
                 }
 
                 $state->requestKey = $infoLog->purchase_request_key;
+
+                if (!empty($state->eventType) && $state->eventType === Sdk::WEBHOOK_EVENT_TYPE_VOID) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $state->reversedTransId = $state->transactionId;
+                    $state->transactionId .= ':voided';
+                }
             }
         }
 
