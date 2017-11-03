@@ -259,6 +259,11 @@ class Provider extends AbstractProvider
         }
         switch ($filtered['payload']['entityName']) {
             case 'transaction':
+                if (!empty($filtered['payload']['authAmount'])) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $state->authAmount = $filtered['payload']['authAmount'];
+                }
+
                 $state->transactionId = $filtered['payload']['id'];
                 break;
         }
@@ -354,6 +359,23 @@ class Provider extends AbstractProvider
                         }
                     }
                 }
+
+                if (!$state->requestKey) {
+                    // Authorize.Net does not mark the first transaction for ARB as recurring billing
+                    // we have to rely on the invoice number to process it
+                    $invoiceNumber = $transaction->getInvoiceNumber();
+
+                    if (!empty($invoiceNumber) && preg_match('/^(\d+)(:\d+)?$/', $invoiceNumber, $matches)) {
+                        $purchaseRequestId = $matches[1];
+
+                        /** @var PurchaseRequest $purchaseRequest */
+                        $purchaseRequest = \XF::em()->find('XF:PurchaseRequest', $purchaseRequestId);
+
+                        if ($purchaseRequest) {
+                            $state->purchaseRequest = $purchaseRequest;
+                        }
+                    }
+                }
             } else {
                 \XF::logError(implode(', ', $transaction->getErrors()));
             }
@@ -363,6 +385,36 @@ class Provider extends AbstractProvider
             $state->logType = 'error';
             $state->logMessage = 'Purchase request cannot be detected.';
             return false;
+        }
+
+        return true;
+    }
+
+    public function validateCost(CallbackState $state)
+    {
+        if (empty($state->eventType)) {
+            $state->logType = 'error';
+            $state->logMessage = 'Missing event type';
+            return false;
+        }
+
+        switch ($state->eventType) {
+            case Sdk::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE:
+                if (empty($state->authAmount)) {
+                    $state->logType = 'error';
+                    $state->logMessage = 'Missing auth amount';
+                    return false;
+                }
+
+                $purchaseRequestAmount = floatval($state->getPurchaseRequest()->cost_amount);
+                $amountDelta = abs($state->authAmount - $purchaseRequestAmount);
+
+                if ($amountDelta > 0.01) {
+                    $state->logType = 'error';
+                    $state->logMessage = 'Invalid cost amount';
+                    return false;
+                }
+                break;
         }
 
         return true;

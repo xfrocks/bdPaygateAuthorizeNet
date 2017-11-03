@@ -11,6 +11,17 @@ class GetTransactionDetailsResult extends BaseResult
         return $this->getTransaction()->getResponseCode() === 1;
     }
 
+    public function getInvoiceNumber()
+    {
+        $order = $this->getTransaction()->getOrder();
+
+        if (empty($order)) {
+            return null;
+        }
+
+        return $order->getInvoiceNumber();
+    }
+
     public function getReversedTransId()
     {
         $transaction = $this->getTransaction();
