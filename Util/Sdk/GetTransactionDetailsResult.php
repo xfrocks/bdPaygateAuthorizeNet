@@ -52,7 +52,15 @@ class GetTransactionDetailsResult extends BaseResult
 
     public function toArray()
     {
-        return (array)$this->getTransaction();
+        $transaction = $this->getTransaction();
+        $array = (array)$transaction;
+
+        $array['billTo'] = (array)$transaction->getBillTo();
+        $array['customer'] = (array)$transaction->getCustomer();
+        $array['order'] = (array)$transaction->getOrder();
+        $array['subscription'] = (array)$transaction->getSubscription();
+
+        return $array;
     }
 
     private function getTransaction()
