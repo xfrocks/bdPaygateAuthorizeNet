@@ -106,6 +106,7 @@
 
         onAcceptJsResponse: function (response) {
             this.$progressText.text('');
+            this._callAjaxSubmit('enableButtons');
 
             // noinspection JSUnresolvedVariable
             if (response.messages && response.messages.resultCode === "Error") {
