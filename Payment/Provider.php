@@ -165,7 +165,9 @@ class Provider extends AbstractProvider
 
         $chargeResult = Sdk::charge($purchaseRequest, $purchase, $opaqueDataJson, $inputs);
 
-        if (!$chargeResult->isOk()) {
+        if (!$chargeResult->isOk() ||
+            $chargeResult->getResponseCode() !== Sdk::RESPONSE_CODE_TRANSACTION_APPROVED
+        ) {
             $chargeErrors = $chargeResult->getTransactionErrors();
             if (count($chargeErrors) > 0) {
                 $errorPhrase = \XF::phrase('Xfrocks_AuthorizeNetArb_charge_errors_x', [

@@ -19,6 +19,7 @@ use Xfrocks\AuthorizeNetArb\Util\Sdk\SubscribeResult;
 
 class Sdk
 {
+    const RESPONSE_CODE_TRANSACTION_APPROVED = '1';
     const RESPONSE_OK = 'Ok';
 
     const SUBSCRIBE_MAX_ATTEMPTS = 3;
