@@ -1,2 +1,6 @@
+1.1.0 (released 23-12-2017)
+    Added support for return URL
+    Performance improvements
+
 1.0 (released 28-03-2013)
 	First release
