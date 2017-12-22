@@ -2,3 +2,4 @@
 *.devhelper
 library/bdPaygateAuthorizeNet/DevHelper/Generated/*
 FileSums.php
+library/bdPaygateAuthorizeNet/DevHelper/XFCP
