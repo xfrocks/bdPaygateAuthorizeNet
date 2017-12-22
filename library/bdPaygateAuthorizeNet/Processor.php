@@ -63,16 +63,7 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
         $itemId = $filtered['x_custom'];
         $amount = $filtered['x_amount'];
         $currency = 'n/a';
-
-        /** @var bdPaygate_Model_Processor $processorModel */
-        $processorModel = $this->getModelFromCache('bdPaygate_Model_Processor');
         $options = XenForo_Application::getOptions();
-
-        $log = $processorModel->getLogByTransactionId($transactionId);
-        if (!empty($log)) {
-            $this->_setError("Transaction {$transactionId} has already been processed");
-            return false;
-        }
 
         $hash = strtoupper(md5(
             $options->get('bdPaygateAuthorizeNet_md5hash')
