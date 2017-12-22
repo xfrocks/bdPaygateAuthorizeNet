@@ -8,12 +8,12 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 			bdPaygate_Processor_Abstract::CURRENCY_USD,
 		);
 	}
-	
+
 	public function isRecurringSupported()
 	{
 		return false;
 	}
-	
+
 	public function validateCallback(Zend_Controller_Request_Http $request, &$transactionId, &$paymentStatus, &$transactionDetails, &$itemId)
 	{
 		$amount = false;
@@ -36,7 +36,7 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 			'x_response_reason_code' => XenForo_Input::UINT,
 			'x_custom' => XenForo_Input::STRING
 		));
-		
+
 		$transactionId = (!empty($filtered['x_trans_id']) ? ('authnet_' . $filtered['x_trans_id']) : '');
 		$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_OTHER;
 		$transactionDetails = array_merge($_POST, $filtered);
@@ -58,13 +58,13 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 			. $options->get('bdPaygateAuthorizeNet_id')
 			. $filtered['x_trans_id']
 			. $filtered['x_amount']));
-		
+
 		if ($hash != $filtered['x_MD5_Hash'])
 		{
 			$this->_setError('Request not validated');
 			return false;
 		}
-		
+
 		// according to http://www.authorize.net/support/merchant/Transaction_Response/Response_Reason_Codes_and_Response_Reason_Text.htm
 		switch ($filtered['x_response_code']) {
 		case 1:
@@ -74,22 +74,22 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 		default:
 			$paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_REJECTED;
 		}
-		
+
 		return true;
 	}
-	
+
 	public function generateFormData($amount, $currency, $itemName, $itemId, $recurringInterval = false, $recurringUnit = false, array $extraData = array())
 	{
 		$this->_assertAmount($amount);
 		$this->_assertCurrency($currency);
 		$this->_assertItem($itemName, $itemId);
 		$this->_assertRecurring($recurringInterval, $recurringUnit);
-		
+
 		$formAction = $this->_sandboxMode()
 			? 'https://test.authorize.net/gateway/transact.dll'
 			: 'https://secure.authorize.net/gateway/transact.dll';
 		$callToAction = new XenForo_Phrase('bdpaygateauthorizenet_call_to_action');
-		
+
 		$options = XenForo_Application::getOptions();
 		$id = $options->get('bdPaygateAuthorizeNet_id');
 		$key = $options->get('bdPaygateAuthorizeNet_key');
@@ -97,7 +97,14 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 		$timestamp = XenForo_Application::$time;
 		$currencyAuthorizeNet = utf8_strtoupper($currency);
 		$callbackUrl = $this->_generateCallbackUrl($extraData);
-		
+
+        if (strpos($callbackUrl, '?') === false) {
+            $callbackUrl .= '?';
+        } else {
+            $callbackUrl .= '&';
+        }
+        $callbackUrl .= 'returnUrl=' . rawurlencode($this->_generateReturnUrl($extraData));
+
 		$hashParts = array(
 			$id,
 			$sequence,
@@ -106,7 +113,7 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 			$currencyAuthorizeNet
 		);
 		$hash = hash_hmac('md5', implode('^', $hashParts), $key);
-		
+
 		$form = <<<EOF
 <form action="{$formAction}" method="POST">
 	<input type="hidden" name="x_login" value="{$id}" />
@@ -124,20 +131,26 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 	<input type="submit" value="{$callToAction}" class="button" />
 </form>
 EOF;
-		
+
 		return $form;
 	}
-	
+
 	public function redirectOnCallback(Zend_Controller_Request_Http $request, $paymentStatus, $processMessage)
 	{
 		// for Authorize.Net relay response architecture, always redirect back to index page
 		// TODO: find a better way to do this?
 		if ($paymentStatus == bdPaygate_Processor_Abstract::PAYMENT_STATUS_ACCEPTED)
 		{
-			echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', XenForo_Link::buildPublicLink('canonical:misc/authorize-net-complete'));
+            $returnUrl = XenForo_Link::buildPublicLink('canonical:misc/authorize-net-complete');
+
+            if (isset($_REQUEST['returnUrl'])) {
+                $returnUrl = $_REQUEST['returnUrl'];
+            }
+
+			echo sprintf('<meta http-equiv="refresh" content="0;url=%s"></meta>', $returnUrl);
 			return true;
 		}
-		
+
 		$input = new XenForo_Input($request);
 		$filtered = $input->filter(array(
 			'x_response_reason_text' => XenForo_Input::STRING,
