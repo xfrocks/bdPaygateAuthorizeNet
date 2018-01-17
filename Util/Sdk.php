@@ -3,16 +3,16 @@
 namespace Xfrocks\AuthorizeNetArb\Util;
 
 use GuzzleHttp\Exception\RequestException;
+use net\authorize\api\constants as AnetConstants;
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
-use net\authorize\api\constants as AnetConstants;
 use XF\Entity\PaymentProfile;
 use XF\Entity\PurchaseRequest;
 use XF\Purchasable\Purchase;
 use XF\Util\File;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\BaseResult;
-use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeBaseResult;
+use Xfrocks\AuthorizeNetArb\Util\Sdk\ChargeResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\CreateCustomerProfileResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\GetTransactionDetailsResult;
 use Xfrocks\AuthorizeNetArb\Util\Sdk\SubscribeResult;
@@ -152,6 +152,9 @@ class Sdk
 
         $transactionRequest = new AnetAPI\TransactionRequestType();
         $transactionRequest->setAmount($purchase->cost);
+        if ($purchase->currency !== 'USD') {
+            throw new \InvalidArgumentException('Currency is not supported ' . $purchase->currency);
+        }
         if ($customerAddressHasData) {
             $transactionRequest->setBillTo($customerAddress);
         }
@@ -283,6 +286,9 @@ class Sdk
 
         $subscription = new AnetAPI\ARBSubscriptionType();
         $subscription->setAmount($purchase->cost);
+        if ($purchase->currency !== 'USD') {
+            throw new \InvalidArgumentException('Currency is not supported ' . $purchase->currency);
+        }
         $subscription->setOrder($order);
         $subscription->setPaymentSchedule($paymentSchedule);
         $subscription->setProfile($apiCustomerProfile);
