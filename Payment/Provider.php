@@ -90,7 +90,7 @@ class Provider extends AbstractProvider
         $logs = $logFinder->fetch();
 
         $subscriptionId = null;
-        foreach ($logs AS $log) {
+        foreach ($logs as $log) {
             if ($log->subscriber_id) {
                 $subscriptionId = $log->subscriber_id;
                 break;
