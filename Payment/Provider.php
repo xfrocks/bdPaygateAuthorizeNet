@@ -424,6 +424,10 @@ class Provider extends AbstractProvider
 
     public function verifyConfig(array &$options, &$errors = [])
     {
+        if (!is_array($errors)) {
+            $errors = [];
+        }
+
         $requiredOptionKeys = [
             'api_login_id',
             'transaction_key',
