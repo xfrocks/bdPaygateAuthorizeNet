@@ -185,6 +185,7 @@ class Sdk
      * @param PaymentProfile $paymentProfile
      * @param ChargeResult $chargeOk
      * @return BaseResult|CreateCustomerProfileResult
+     * @throws \Exception
      */
     public static function createCustomerProfileFromTransaction($paymentProfile, $chargeOk)
     {
@@ -214,6 +215,7 @@ class Sdk
      * @param PaymentProfile $paymentProfile
      * @param string $transId
      * @return GetTransactionDetailsResult|BaseResult
+     * @throws \Exception
      */
     public static function getTransactionDetails($paymentProfile, $transId)
     {
@@ -241,6 +243,7 @@ class Sdk
      * @param CreateCustomerProfileResult $customerProfile
      * @param int $attemptId
      * @return BaseResult|SubscribeResult
+     * @throws \Exception
      */
     public static function subscribe($purchaseRequest, $purchase, $customerProfile, $attemptId = 0)
     {
@@ -308,8 +311,8 @@ class Sdk
             $baseResult = new BaseResult($apiResponse);
 
             $shouldRetry = false;
-            $errors = $baseResult->getErrors();
-            if (isset($errors['E00040'])) {
+            $apiMessages = $baseResult->getApiMessages();
+            if (isset($apiMessages['E00040'])) {
                 $shouldRetry = true;
             }
 
@@ -333,6 +336,7 @@ class Sdk
      * @param PaymentProfile $paymentProfile
      * @param string $subscriptionId
      * @return bool
+     * @throws \Exception
      */
     public static function unSubscribe($paymentProfile, $subscriptionId)
     {
@@ -427,6 +431,7 @@ class Sdk
      * @param string $method
      * @param array|null $json
      * @return mixed
+     * @throws \Exception
      */
     private static function createHttpRequestAndSend(
         $apiLoginId,

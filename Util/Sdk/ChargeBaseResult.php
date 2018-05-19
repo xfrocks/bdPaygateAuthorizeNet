@@ -6,12 +6,17 @@ use net\authorize\api\contract\v1 as AnetAPI;
 
 class ChargeBaseResult extends BaseResult
 {
+    public function getResponseCode()
+    {
+        return $this->getTransactionResponse()->getResponseCode();
+    }
+
     public function getTransactionErrors()
     {
         $errorTexts = [];
 
+        /** @var AnetAPI\TransactionResponseType\ErrorsAType\ErrorAType[] $errors */
         $errors = $this->getTransactionResponse()->getErrors();
-        /** @var AnetAPI\TransactionResponseType\ErrorsAType\ErrorAType $error */
         foreach ($errors as $error) {
             $errorId = $error->getErrorCode();
             if (isset($errorTexts[$errorId])) {
@@ -22,6 +27,21 @@ class ChargeBaseResult extends BaseResult
         }
 
         return $errorTexts;
+    }
+
+    public function getTransId()
+    {
+        return $this->getTransactionResponse()->getTransId();
+    }
+
+    public function toArray()
+    {
+        $array = self::castToArray($this->getTransactionResponse());
+
+        $array['_apiMessages'] = $this->getApiMessages();
+        $array['_transactionErrors'] = $this->getTransactionErrors();
+
+        return $array;
     }
 
     protected function getTransactionResponse()

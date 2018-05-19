@@ -165,58 +165,63 @@ class Provider extends AbstractProvider
 
         $chargeResult = Sdk::charge($purchaseRequest, $purchase, $opaqueDataJson, $inputs);
 
-        if (!$chargeResult->isOk() ||
-            $chargeResult->getResponseCode() !== Sdk::RESPONSE_CODE_TRANSACTION_APPROVED
-        ) {
-            $chargeErrors = $chargeResult->getTransactionErrors();
-            if (count($chargeErrors) > 0) {
-                $errorPhrase = \XF::phrase('Xfrocks_AuthorizeNetArb_charge_errors_x', [
-                    'errors' => implode('</li><li>', $chargeErrors)
-                ]);
-                throw $controller->exception($controller->error($errorPhrase));
-            }
-
-            \XF::logError(implode("\n", $chargeResult->getErrors()));
-            throw $controller->exception($controller->error(\XF::phrase('something_went_wrong_please_try_again')));
-        }
-
+        $chargeOk = ($chargeResult->isOk() && $chargeResult->getResponseCode() === Sdk::RESPONSE_CODE_TRANSACTION_APPROVED);
+        $chargeLogType = $chargeOk ? 'info' : 'error';
         /** @var Payment $paymentRepo */
         $paymentRepo = \XF::repository('XF:Payment');
         $paymentRepo->logCallback(
             $purchaseRequest->request_key,
             $this->getProviderId(),
             $chargeResult->getTransId(),
-            'info',
-            'Authorize.Net charge ok',
+            $chargeLogType,
+            'Authorize.Net charge ' . $chargeLogType,
             ['charge' => $chargeResult->toArray()]
         );
 
+        if (!$chargeOk) {
+            $chargeErrors = $chargeResult->getTransactionErrors();
+            if (count($chargeErrors) > 0) {
+                $errorPhrase = \XF::phrase('Xfrocks_AuthorizeNetArb_charge_errors_x', [
+                    'errors' => implode('</li><li>', $chargeErrors)
+                ]);
+            } else {
+                $errorPhrase = \XF::phrase('something_went_wrong_please_try_again');
+            }
+
+            throw $controller->exception($controller->error($errorPhrase));
+        }
+
         if ($purchase->recurring) {
+            $subscribeLogType = 'error';
+            $subscribeLogDetails = [];
+            $subscribeLogSubId = null;
+
             try {
                 $customerProfile = Sdk::createCustomerProfileFromTransaction($paymentProfile, $chargeResult);
+                $subscribeLogDetails['customerProfile'] = $customerProfile->toArray();
+
                 if ($customerProfile->isOk()) {
                     $subscribeResult = Sdk::subscribe($purchaseRequest, $purchase, $customerProfile);
+                    $subscribeLogDetails['subscribe'] = $subscribeResult->toArray();
 
-                    if (!$subscribeResult->isOk()) {
-                        \XF::logError(implode(', ', $subscribeResult->getErrors()));
-                    } else {
-                        $paymentRepo->logCallback(
-                            $purchaseRequest->request_key,
-                            $this->getProviderId(),
-                            $chargeResult->getTransId(),
-                            'info',
-                            'Authorize.Net subscribe ok',
-                            [
-                                'customerProfile' => $customerProfile->toArray(),
-                                'subscribe' => $subscribeResult->toArray()
-                            ],
-                            $subscribeResult->getSubscriptionId()
-                        );
+                    if ($subscribeResult->isOk()) {
+                        $subscribeLogSubId = $subscribeResult->getSubscriptionId();
+                        $subscribeLogType = 'info';
                     }
                 }
             } catch (\Exception $e) {
-                \XF::logException($e);
+                \XF::logException($e, false, '', true);
             }
+
+            $paymentRepo->logCallback(
+                $purchaseRequest->request_key,
+                $this->getProviderId(),
+                $chargeResult->getTransId(),
+                $subscribeLogType,
+                'Authorize.Net subscribe ' . $subscribeLogType,
+                $subscribeLogDetails,
+                $subscribeLogSubId
+            );
         }
 
         return $controller->redirect($purchase->returnUrl);
@@ -378,8 +383,6 @@ class Provider extends AbstractProvider
                         }
                     }
                 }
-            } else {
-                \XF::logError(implode(', ', $transaction->getErrors()));
             }
         }
 

@@ -8,19 +8,4 @@ class ChargeResult extends ChargeBaseResult
     {
         return true;
     }
-
-    public function getResponseCode()
-    {
-        return $this->getTransactionResponse()->getResponseCode();
-    }
-
-    public function getTransId()
-    {
-        return $this->getTransactionResponse()->getTransId();
-    }
-
-    public function toArray()
-    {
-        return (array)$this->getTransactionResponse();
-    }
 }

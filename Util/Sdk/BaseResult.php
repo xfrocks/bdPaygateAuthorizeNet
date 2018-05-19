@@ -18,27 +18,53 @@ class BaseResult
         $this->apiResponse = $apiResponse;
     }
 
-    public function getErrors()
+    /**
+     * @return string[]
+     */
+    public function getApiMessages()
     {
-        $errorTexts = [];
+        $messageTexts = [];
 
         $messages = $this->apiResponse->getMessages()->getMessage();
-
-        /** @var AnetAPI\MessagesType\MessageAType $message */
         foreach ($messages as $message) {
-            $errorId = $message->getCode();
-            if (isset($errorTexts[$errorId])) {
-                $errorId .= sprintf('_%d', count($errorTexts) + 1);
+            $messageCode = $message->getCode();
+            if (isset($messageTexts[$messageCode])) {
+                $messageCode .= sprintf('_%d', count($messageTexts) + 1);
             }
 
-            $errorTexts[$errorId] = $message->getText();
+            $messageTexts[$messageCode] = $message->getText();
         }
 
-        return $errorTexts;
+        return $messageTexts;
     }
 
     public function isOk()
     {
         return false;
+    }
+
+    public function toArray()
+    {
+        $array = self::castToArray($this->apiResponse);
+
+        $array['_apiMessages'] = $this->getApiMessages();
+
+        return $array;
+    }
+
+    public static function castToArray($obj)
+    {
+        $class = get_class($obj);
+        $array = array();
+        foreach ((array)$obj as $key => $value) {
+            if (empty($value)) {
+                continue;
+            }
+
+            $key = str_replace($class, '', $key);
+            $array[$key] = $value;
+        }
+
+        return $array;
     }
 }

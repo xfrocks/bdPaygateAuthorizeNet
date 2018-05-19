@@ -53,12 +53,12 @@ class GetTransactionDetailsResult extends BaseResult
     public function toArray()
     {
         $transaction = $this->getTransaction();
-        $array = (array)$transaction;
+        $array = self::castToArray($transaction);
 
-        $array['billTo'] = (array)$transaction->getBillTo();
-        $array['customer'] = (array)$transaction->getCustomer();
-        $array['order'] = (array)$transaction->getOrder();
-        $array['subscription'] = (array)$transaction->getSubscription();
+        $array['_billTo'] = self::castToArray($transaction->getBillTo());
+        $array['_customer'] = self::castToArray($transaction->getCustomer());
+        $array['_order'] = self::castToArray($transaction->getOrder());
+        $array['_subscription'] = self::castToArray($transaction->getSubscription());
 
         return $array;
     }
