@@ -3,6 +3,7 @@
 namespace Xfrocks\AuthorizeNetArb\Util\Sdk;
 
 use net\authorize\api\contract\v1 as AnetAPI;
+use XF\Util\Php;
 
 class BaseResult
 {
@@ -54,6 +55,16 @@ class BaseResult
 
     public static function castToArray($obj)
     {
+        $isEmpty = empty($obj);
+        $isObject = is_object($obj);
+        if ($isEmpty || !$isObject) {
+            return [
+                '_isEmpty' => $isEmpty,
+                '_isObject' => $isObject,
+                '_serialized' => Php::safeSerialize($obj),
+            ];
+        }
+
         $class = get_class($obj);
         $array = array();
         foreach ((array)$obj as $key => $value) {
