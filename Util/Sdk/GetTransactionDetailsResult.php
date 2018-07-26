@@ -8,12 +8,25 @@ class GetTransactionDetailsResult extends BaseResult
 {
     public function isOk()
     {
-        return $this->getTransaction()->getResponseCode() === 1;
+        $transaction = $this->getTransaction();
+        if ($transaction === null) {
+            return null;
+        }
+
+        return $transaction->getResponseCode() === 1;
     }
 
+    /**
+     * @return null|string
+     */
     public function getInvoiceNumber()
     {
-        $order = $this->getTransaction()->getOrder();
+        $transaction = $this->getTransaction();
+        if ($transaction === null) {
+            return null;
+        }
+
+        $order = $transaction->getOrder();
 
         if (empty($order)) {
             return null;
@@ -22,9 +35,15 @@ class GetTransactionDetailsResult extends BaseResult
         return $order->getInvoiceNumber();
     }
 
+    /**
+     * @return null|string
+     */
     public function getReversedTransId()
     {
         $transaction = $this->getTransaction();
+        if ($transaction === null) {
+            return null;
+        }
 
         switch ($transaction->getTransactionType()) {
             case 'refundTransaction':
@@ -34,9 +53,15 @@ class GetTransactionDetailsResult extends BaseResult
         return null;
     }
 
+    /**
+     * @return int|null
+     */
     public function getSubscriptionId()
     {
         $transaction = $this->getTransaction();
+        if ($transaction === null) {
+            return null;
+        }
 
         if (!$transaction->getRecurringBilling()) {
             return null;
@@ -53,6 +78,10 @@ class GetTransactionDetailsResult extends BaseResult
     public function toArray()
     {
         $transaction = $this->getTransaction();
+        if ($transaction === null) {
+            return [];
+        }
+
         $array = self::castToArray($transaction);
 
         $array['_billTo'] = self::castToArray($transaction->getBillTo());
@@ -63,10 +92,17 @@ class GetTransactionDetailsResult extends BaseResult
         return $array;
     }
 
+    /**
+     * @return AnetAPI\TransactionDetailsType|null
+     */
     private function getTransaction()
     {
-        /** @var AnetAPI\GetTransactionDetailsResponse $getTransactionDetailsResponse */
+        /** @var AnetAPI\GetTransactionDetailsResponse|null $getTransactionDetailsResponse */
         $getTransactionDetailsResponse = $this->apiResponse;
+
+        if ($getTransactionDetailsResponse === null) {
+            return null;
+        }
 
         return $getTransactionDetailsResponse->getTransaction();
     }

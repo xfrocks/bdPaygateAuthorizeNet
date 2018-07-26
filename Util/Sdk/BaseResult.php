@@ -39,11 +39,17 @@ class BaseResult
         return $messageTexts;
     }
 
+    /**
+     * @return bool
+     */
     public function isOk()
     {
         return false;
     }
 
+    /**
+     * @return array
+     */
     public function toArray()
     {
         $array = self::castToArray($this->apiResponse);
@@ -53,6 +59,10 @@ class BaseResult
         return $array;
     }
 
+    /**
+     * @param mixed $obj
+     * @return array
+     */
     public static function castToArray($obj)
     {
         $isEmpty = empty($obj);

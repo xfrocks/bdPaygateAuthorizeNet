@@ -191,13 +191,18 @@ class Sdk
     {
         self::autoload();
 
+        $transId = $chargeOk->getTransId();
+        if ($transId === null) {
+            throw new \LogicException('Charge does not have a valid transaction id');
+        }
+
         $customer = new AnetAPI\CustomerProfileBaseType();
         $customer->setDescription(sprintf('Customer Profile for transaction %s', $chargeOk->getTransId()));
 
         $request = new AnetApi\CreateCustomerProfileFromTransactionRequest();
         $request->setCustomer($customer);
         $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
-        $request->setTransId($chargeOk->getTransId());
+        $request->setTransId($transId);
 
         $controller = new AnetController\CreateCustomerProfileFromTransactionController($request);
 
@@ -474,6 +479,9 @@ class Sdk
         return $response->json();
     }
 
+    /**
+     * @return string
+     */
     private static function getEndpoint()
     {
         if (\XF::config('enableLivePayments')) {

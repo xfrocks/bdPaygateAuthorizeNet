@@ -233,6 +233,10 @@ class Provider extends AbstractProvider
         return $controller->redirect($purchase->returnUrl);
     }
 
+    /**
+     * @param \XF\Entity\UserUpgradeActive $active
+     * @return string
+     */
     public function renderCancellation(\XF\Entity\UserUpgradeActive $active)
     {
         $data = [

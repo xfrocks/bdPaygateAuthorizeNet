@@ -6,17 +6,33 @@ use net\authorize\api\contract\v1 as AnetAPI;
 
 class ChargeBaseResult extends BaseResult
 {
+    /**
+     * @return string|null
+     */
     public function getResponseCode()
     {
-        return $this->getTransactionResponse()->getResponseCode();
+        $t = $this->getTransactionResponse();
+        if ($t === null) {
+            return null;
+        }
+
+        return $t->getResponseCode();
     }
 
+    /**
+     * @return array
+     */
     public function getTransactionErrors()
     {
         $errorTexts = [];
 
+        $t = $this->getTransactionResponse();
+        if ($t === null) {
+            return $errorTexts;
+        }
+
         /** @var AnetAPI\TransactionResponseType\ErrorsAType\ErrorAType[] $errors */
-        $errors = $this->getTransactionResponse()->getErrors();
+        $errors = $t->getErrors();
         foreach ($errors as $error) {
             $errorId = $error->getErrorCode();
             if (isset($errorTexts[$errorId])) {
@@ -29,9 +45,17 @@ class ChargeBaseResult extends BaseResult
         return $errorTexts;
     }
 
+    /**
+     * @return string|null
+     */
     public function getTransId()
     {
-        return $this->getTransactionResponse()->getTransId();
+        $t = $this->getTransactionResponse();
+        if ($t === null) {
+            return null;
+        }
+
+        return $t->getTransId();
     }
 
     public function toArray()
@@ -44,10 +68,17 @@ class ChargeBaseResult extends BaseResult
         return $array;
     }
 
+    /**
+     * @return AnetAPI\TransactionResponseType|null
+     */
     protected function getTransactionResponse()
     {
-        /** @var AnetAPI\CreateTransactionResponse $apiResponse */
+        /** @var AnetAPI\CreateTransactionResponse|null $apiResponse */
         $apiResponse = $this->apiResponse;
+
+        if ($apiResponse === null) {
+            return null;
+        }
 
         return $apiResponse->getTransactionResponse();
     }

@@ -11,6 +11,9 @@ class SubscribeResult extends BaseResult
         return true;
     }
 
+    /**
+     * @return string
+     */
     public function getSubscriptionId()
     {
         /** @var AnetAPI\ARBCreateSubscriptionResponse $apiResponse */

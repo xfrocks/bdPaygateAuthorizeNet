@@ -6,11 +6,17 @@ use net\authorize\api\contract\v1 as AnetAPI;
 
 class CreateCustomerProfileResult extends BaseResult
 {
+    /**
+     * @return mixed
+     */
     public function getPaymentProfileId()
     {
         return $this->getCustomerProfileResponse()->getCustomerPaymentProfileIdList()[0];
     }
 
+    /**
+     * @return string
+     */
     public function getProfileId()
     {
         return $this->getCustomerProfileResponse()->getCustomerProfileId();
