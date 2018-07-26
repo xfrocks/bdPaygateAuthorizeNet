@@ -22,7 +22,7 @@
                 <xf:formrow rowtype="input"
                             label="{{ phrase('pay_by_card') }}">
                     <div class="inputGroup">
-                        <input type="text" rel="card-number" class="input" required
+                        <input type="text" rel="card-number" class="input" maxlength="16" required
                                autocomplete="cc-number"/>
                     </div>
 
@@ -44,7 +44,7 @@
                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                 {{ phrase('Xfrocks_AuthorizeNetArb_card_code') }}
                             </div>
-                            <input type="text" rel="card-code" class="input" required
+                            <input type="text" rel="card-code" class="input" maxlength="4" required
                                    autocomplete="cc-csv" style="width: 4em;"/>
                         </xf:if>
                     </div>
@@ -61,17 +61,18 @@
                     <xf:formrow rowtype="input"
                                 label="{{ phrase('Xfrocks_AuthorizeNetArb_full_name') }}">
                         <div class="inputGroup">
-                            <input type="text" name="first_name" class="input" required
+                            <input type="text" name="first_name" class="input" maxlength="50" required
                                    autocomplete="given-name"/>
                             <div class="inputGroup-splitter"></div>
-                            <input type="text" name="last_name" class="input" required
+                            <input type="text" name="last_name" class="input" maxlength="50" required
                                    autocomplete="family-name"/>
                         </div>
                     </xf:formrow>
                 </xf:if>
 
                 <xf:if is="{$paymentProfile.options.require_email}">
-                    <xf:textboxrow name="email" label="{{ phrase('email') }}" required="required"
+                    <xf:textboxrow label="{{ phrase('email') }}"
+                                   name="email" maxlength="255" required="required"
                                    value="{$xf.visitor.email}" autocomplete="email"/>
                 </xf:if>
 
@@ -79,13 +80,13 @@
                     <xf:formrow rowtype="input"
                                 label="{{ phrase('Xfrocks_AuthorizeNetArb_address') }}">
                         <div class="inputGroup">
-                            <input type="text" name="address" class="input" required
+                            <input type="text" name="address" class="input" maxlength="60" required
                                    autocomplete="billing street-address"/>
                         </div>
 
                         <br/>
                         <div class="inputGroup">
-                            <input type="text" name="city" class="input" required
+                            <input type="text" name="city" class="input" maxlength="40" required
                                    autocomplete="billing address-level2"/>
                         </div>
 
@@ -94,14 +95,14 @@
                             <div class="inputGroup-text">
                                 {{ phrase('Xfrocks_AuthorizeNetArb_state') }}
                             </div>
-                            <input type="text" name="state" class="input" required
+                            <input type="text" name="state" class="input" maxlength="40" required
                                    autocomplete="billing address-level1"/>
 
                             <div class="inputGroup-text">
                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                 {{ phrase('Xfrocks_AuthorizeNetArb_zip') }}
                             </div>
-                            <input type="text" name="zip" class="input" required
+                            <input type="text" name="zip" class="input" maxlength="20" required
                                    autocomplete="billing postal-code"/>
                         </div>
                     </xf:formrow>
