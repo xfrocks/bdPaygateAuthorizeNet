@@ -1,0 +1,15 @@
+{
+    ".gitignore": [
+        "/_build/",
+        "/_data/",
+        "/_releases/",
+        "/vendor/"
+    ],
+    "phpstan": {
+        "autoload": "/var/www/html/src/addons/Xfrocks/AuthorizeNetArb/vendor/autoload.php"
+    },
+    "DevHelper\\Cli\\Command\\AutoGen": {
+        "time": 1532593288,
+        "version_id": 2000000
+    }
+}

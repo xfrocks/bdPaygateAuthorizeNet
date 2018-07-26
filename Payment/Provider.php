@@ -190,6 +190,8 @@ class Provider extends AbstractProvider
 
             throw $controller->exception($controller->error($errorPhrase));
         }
+        /** @var Sdk\ChargeResult $chargeResultOk */
+        $chargeResultOk = $chargeResult;
 
         if ($purchase->recurring) {
             $subscribeLogType = 'error';
@@ -197,15 +199,19 @@ class Provider extends AbstractProvider
             $subscribeLogSubId = null;
 
             try {
-                $customerProfile = Sdk::createCustomerProfileFromTransaction($paymentProfile, $chargeResult);
+                $customerProfile = Sdk::createCustomerProfileFromTransaction($paymentProfile, $chargeResultOk);
                 $subscribeLogDetails['customerProfile'] = $customerProfile->toArray();
 
                 if ($customerProfile->isOk()) {
-                    $subscribeResult = Sdk::subscribe($purchaseRequest, $purchase, $customerProfile);
+                    /** @var Sdk\CreateCustomerProfileResult $customerProfileOk */
+                    $customerProfileOk = $customerProfile;
+                    $subscribeResult = Sdk::subscribe($purchaseRequest, $purchase, $customerProfileOk);
                     $subscribeLogDetails['subscribe'] = $subscribeResult->toArray();
 
                     if ($subscribeResult->isOk()) {
-                        $subscribeLogSubId = $subscribeResult->getSubscriptionId();
+                        /** @var Sdk\SubscribeResult $subscribeResultOk */
+                        $subscribeResultOk = $subscribeResult;
+                        $subscribeLogSubId = $subscribeResultOk->getSubscriptionId();
                         $subscribeLogType = 'info';
                     }
                 }
@@ -334,23 +340,25 @@ class Provider extends AbstractProvider
             if ($transaction->isOk()) {
                 /** @noinspection PhpUndefinedFieldInspection */
                 $state->apiTransaction = $transaction->toArray();
+                /** @var Sdk\GetTransactionDetailsResult $transactionOk */
+                $transactionOk = $transaction;
 
-                $subscriptionId = $transaction->getSubscriptionId();
+                $subscriptionId = $transactionOk->getSubscriptionId();
                 if (!empty($subscriptionId)) {
                     $state->subscriberId = $subscriptionId;
 
-                    /** @var PaymentProviderLog $providerLog */
+                    /** @var PaymentProviderLog|null $providerLog */
                     $providerLog = \XF::em()->findOne('XF:PaymentProviderLog', [
                         'subscriber_id' => $subscriptionId,
                         'provider_id' => $this->getProviderId()
                     ]);
-                    if ($providerLog) {
+                    if ($providerLog !== null) {
                         $state->requestKey = $providerLog->purchase_request_key;
                     }
                 }
 
                 if (!$state->requestKey) {
-                    $reversedTransId = $transaction->getReversedTransId();
+                    $reversedTransId = $transactionOk->getReversedTransId();
 
                     if (!empty($reversedTransId)) {
                         $infoLogs = $paymentRepo->findLogsByTransactionId($reversedTransId, 'info');
@@ -370,15 +378,15 @@ class Provider extends AbstractProvider
                 if (!$state->requestKey) {
                     // Authorize.Net does not mark the first transaction for ARB as recurring billing
                     // we have to rely on the invoice number to process it
-                    $invoiceNumber = $transaction->getInvoiceNumber();
+                    $invoiceNumber = $transactionOk->getInvoiceNumber();
 
                     if (!empty($invoiceNumber) && preg_match('/^(\d+)(:\d+)?$/', $invoiceNumber, $matches)) {
                         $purchaseRequestId = $matches[1];
 
-                        /** @var PurchaseRequest $purchaseRequest */
+                        /** @var PurchaseRequest|null $purchaseRequest */
                         $purchaseRequest = \XF::em()->find('XF:PurchaseRequest', $purchaseRequestId);
 
-                        if ($purchaseRequest) {
+                        if ($purchaseRequest !== null) {
                             $state->purchaseRequest = $purchaseRequest;
                         }
                     }

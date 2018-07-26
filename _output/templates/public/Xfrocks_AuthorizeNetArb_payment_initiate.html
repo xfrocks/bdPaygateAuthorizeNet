@@ -1,0 +1,124 @@
+<xf:css src="payment_initiate.less"/>
+<xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb"/>
+
+<xf:title>{{ phrase('enter_payment_details') }}</xf:title>
+
+<xf:if is="{$enableLivePayments}">
+    <xf:js src="https://js.authorize.net/v1/Accept.js"/>
+    <xf:else/>
+    <xf:js src="https://jstest.authorize.net/v1/Accept.js"/>
+</xf:if>
+
+<div class="blocks">
+    <xf:form action="{{ link('purchase/process', null, {'request_key': $purchaseRequest.request_key}) }}"
+             class="block block--paymentInitiate" data-xf-init="authorizenet-payment-form ajax-submit"
+             data-api-login-id="{$paymentProfile.options.api_login_id}"
+             data-phrase-preparing="{{ phrase('Xfrocks_AuthorizeNetArb_progress_text_preparing') }}"
+             data-phrase-processing="{{ phrase('Xfrocks_AuthorizeNetArb_progress_text_processing') }}"
+             data-progress-text-selector=".progressText"
+             data-public-client-key="{$paymentProfile.options.public_client_key}">
+        <div class="block-container">
+            <div class="block-body">
+                <xf:formrow rowtype="input"
+                            label="{{ phrase('pay_by_card') }}">
+                    <div class="inputGroup">
+                        <input type="text" rel="card-number" class="input" required
+                               autocomplete="cc-number"/>
+                    </div>
+
+                    <br/>
+                    <div class="inputGroup">
+                        <div class="inputGroup-text">
+                            {{ phrase('Xfrocks_AuthorizeNetArb_expiration_date') }}
+                        </div>
+                        <input type="text" rel="month" class="input" maxlength="2" required
+                               autocomplete="cc-exp-month" style="width: 3em;"/>
+                        <div class="inputGroup-text">
+                            /
+                        </div>
+                        <input type="text" rel="year" class="input" maxlength="4" required
+                               autocomplete="cc-exp-year" style="width: 4em;"/>
+
+                        <xf:if is="{$paymentProfile.options.require_card_code}">
+                            <div class="inputGroup-text">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                {{ phrase('Xfrocks_AuthorizeNetArb_card_code') }}
+                            </div>
+                            <input type="text" rel="card-code" class="input" required
+                                   autocomplete="cc-csv" style="width: 4em;"/>
+                        </xf:if>
+                    </div>
+
+                    <div class="formRow-explain">
+                        {{ phrase('payments_processed_securely_by_x', {
+                        'link': 'https://authorize.net/',
+                        'provider': 'Authorize.Net'
+                        })}}
+                    </div>
+                </xf:formrow>
+
+                <xf:if is="{$paymentProfile.options.require_names}">
+                    <xf:formrow rowtype="input"
+                                label="{{ phrase('Xfrocks_AuthorizeNetArb_full_name') }}">
+                        <div class="inputGroup">
+                            <input type="text" name="first_name" class="input" required
+                                   autocomplete="given-name"/>
+                            <div class="inputGroup-splitter"></div>
+                            <input type="text" name="last_name" class="input" required
+                                   autocomplete="family-name"/>
+                        </div>
+                    </xf:formrow>
+                </xf:if>
+
+                <xf:if is="{$paymentProfile.options.require_email}">
+                    <xf:textboxrow name="email" label="{{ phrase('email') }}" required="required"
+                                   value="{$xf.visitor.email}" autocomplete="email"/>
+                </xf:if>
+
+                <xf:if is="{$paymentProfile.options.require_address}">
+                    <xf:formrow rowtype="input"
+                                label="{{ phrase('Xfrocks_AuthorizeNetArb_address') }}">
+                        <div class="inputGroup">
+                            <input type="text" name="address" class="input" required
+                                   autocomplete="billing street-address"/>
+                        </div>
+
+                        <br/>
+                        <div class="inputGroup">
+                            <input type="text" name="city" class="input" required
+                                   autocomplete="billing address-level2"/>
+                        </div>
+
+                        <br/>
+                        <div class="inputGroup">
+                            <div class="inputGroup-text">
+                                {{ phrase('Xfrocks_AuthorizeNetArb_state') }}
+                            </div>
+                            <input type="text" name="state" class="input" required
+                                   autocomplete="billing address-level1"/>
+
+                            <div class="inputGroup-text">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                {{ phrase('Xfrocks_AuthorizeNetArb_zip') }}
+                            </div>
+                            <input type="text" name="zip" class="input" required
+                                   autocomplete="billing postal-code"/>
+                        </div>
+                    </xf:formrow>
+                </xf:if>
+
+                <hr class="formRowSep"/>
+
+                <xf:formrow label="" rowtype="button">
+                    <xf:button type="submit" icon="payment">
+                        {{ phrase('pay_x', {'cost': $purchase.cost|currency($purchase.currency)}) }}
+                    </xf:button>
+
+                    <div class="formRow-explain progressText"></div>
+                </xf:formrow>
+            </div>
+        </div>
+
+        <xf:hiddenval name="opaque_data" value=""/>
+    </xf:form>
+</div>

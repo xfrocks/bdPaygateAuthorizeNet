@@ -1,2 +1,4 @@
-/_output
-/vendor
+/_build/
+/_data/
+/_releases/
+/vendor/

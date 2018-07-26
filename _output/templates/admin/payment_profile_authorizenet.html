@@ -1,0 +1,37 @@
+<xf:textboxrow name="options[api_login_id]" value="{$profile.options.api_login_id}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_api_login_id') }}"
+               explain="{{ phrase('Xfrocks_AuthorizeNetArb_api_login_id_explain') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[transaction_key]" value="{$profile.options.transaction_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_transaction_key') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[signature_key]" value="{$profile.options.signature_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_signature_key') }}"
+               explain="{{ phrase('Xfrocks_AuthorizeNetArb_signature_key_explain') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[secret_key]" value="{$profile.options.secret_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_secret_key') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[public_client_key]" value="{$profile.options.public_client_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_public_client_key') }}"
+               explain="{{ phrase('Xfrocks_AuthorizeNetArb_public_client_key_explain') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:checkboxrow label="" explain="{{ phrase('Xfrocks_AuthorizeNetArb_require_explain') }}">
+    <xf:option name="options[require_names]" value="1" selected="{$profile.options.require_names}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_names') }}
+    </xf:option>
+    <xf:option name="options[require_email]" value="1" selected="{$profile.options.require_email}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_email') }}
+    </xf:option>
+    <xf:option name="options[require_address]" value="1" selected="{$profile.options.require_address}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_address') }}
+    </xf:option>
+    <xf:option name="options[require_card_code]" value="1" selected="{$profile.options.require_card_code}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_card_code') }}
+    </xf:option>
+</xf:checkboxrow>

@@ -127,7 +127,7 @@ class Sdk
         $customerDataHasData = false;
         $visitor = \XF::visitor();
         if ($visitor->user_id > 0) {
-            $customerData->setId($visitor->user_id);
+            $customerData->setId(strval($visitor->user_id));
             $customerDataHasData = true;
         }
         if (isset($inputs['email'])) {
@@ -136,7 +136,7 @@ class Sdk
         }
 
         $order = new AnetAPI\OrderType();
-        $order->setInvoiceNumber($purchaseRequest->purchase_request_id);
+        $order->setInvoiceNumber(strval($purchaseRequest->purchase_request_id));
         $order->setDescription($purchase->title);
 
         $opaqueDataArray = @json_decode($opaqueDataJson, true);
@@ -255,7 +255,7 @@ class Sdk
         $paymentProfile = $purchaseRequest->PaymentProfile;
 
         $order = new AnetAPI\OrderType();
-        $invoiceNumber = $purchaseRequest->purchase_request_id;
+        $invoiceNumber = strval($purchaseRequest->purchase_request_id);
         if ($attemptId > 0) {
             $invoiceNumber .= sprintf(':%d', $attemptId);
         }
@@ -406,7 +406,7 @@ class Sdk
 
     /**
      * @param AnetController\base\ApiOperationBase $controller
-     * @return AnetAPI\AnetApiResponseType
+     * @return AnetAPI\ANetApiResponseType
      * @throws \Exception
      */
     private static function chooseEndpointAndExecute($controller)
@@ -416,10 +416,6 @@ class Sdk
         }
 
         $response = $controller->executeWithApiResponse(self::getEndpoint());
-
-        if ($response === null) {
-            throw new \Exception('Cannot execute Authorize.Net operation');
-        }
 
         return $response;
     }

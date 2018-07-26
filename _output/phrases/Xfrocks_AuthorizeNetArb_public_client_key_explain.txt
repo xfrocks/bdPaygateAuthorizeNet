@@ -1,0 +1,1 @@
+This can be obtained in Authorize.Net Merchant Interface: Account > Settings > Security Settings > General Security Settings > Manage Public Client Key. You will need to enter your answer to the secret question to create a new key.
