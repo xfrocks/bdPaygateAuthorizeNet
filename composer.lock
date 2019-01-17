@@ -1,23 +1,23 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
     "content-hash": "5881bf447c2f42de294728f8a1803a87",
     "packages": [
         {
             "name": "authorizenet/authorizenet",
-            "version": "1.9.3",
+            "version": "1.9.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/AuthorizeNet/sdk-php.git",
-                "reference": "7db567d90192d4c9a9b9b7a817c2eb3717e1eb52"
+                "reference": "31bb167baeec86eb87908e40db58a3de0eba406f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/AuthorizeNet/sdk-php/zipball/7db567d90192d4c9a9b9b7a817c2eb3717e1eb52",
-                "reference": "7db567d90192d4c9a9b9b7a817c2eb3717e1eb52",
+                "url": "https://api.github.com/repos/AuthorizeNet/sdk-php/zipball/31bb167baeec86eb87908e40db58a3de0eba406f",
+                "reference": "31bb167baeec86eb87908e40db58a3de0eba406f",
                 "shasum": ""
             },
             "require": {
@@ -26,7 +26,7 @@
                 "ext-simplexml": "*",
                 "ext-xmlwriter": "*",
                 "goetas-webservices/xsd2php-runtime": "^0.2.2",
-                "php": ">=5.5"
+                "php": ">=5.6"
             },
             "require-dev": {
                 "phpmd/phpmd": "~2.0",
@@ -50,7 +50,7 @@
                 "ecommerce",
                 "payment"
             ],
-            "time": "2017-04-25T05:57:41+00:00"
+            "time": "2018-12-05T10:34:25+00:00"
         },
         {
             "name": "doctrine/annotations",
