@@ -12,7 +12,7 @@ class bdPaygateAuthorizeNet_XenForo_Model_Option extends XFCP_bdPaygateAuthorize
         if (self::$_bdPaygateAuthorizeNet_hijackOptions === true) {
             $optionIds[] = 'bdPaygateAuthorizeNet_id';
             $optionIds[] = 'bdPaygateAuthorizeNet_key';
-            $optionIds[] = 'bdPaygateAuthorizeNet_md5hash';
+            $optionIds[] = 'bdPaygateAuthorizeNet_signatureKey';
         }
 
         $options = parent::getOptionsByIds($optionIds, $fetchOptions);

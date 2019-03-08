@@ -46,33 +46,52 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
     ) {
         $input = new XenForo_Input($request);
         $filtered = $input->filter(array(
-            'x_amount' => XenForo_Input::STRING,
             'x_trans_id' => XenForo_Input::STRING,
-            'x_description' => XenForo_Input::STRING,
+            'x_test_request' => XenForo_Input::STRING,
+            'x_response_code' => XenForo_Input::STRING,
+            'x_auth_code' => XenForo_Input::STRING,
+            'x_cvv2_resp_code' => XenForo_Input::STRING,
+            'x_cavv_response' => XenForo_Input::STRING,
+            'x_avs_code' => XenForo_Input::STRING,
+            'x_method' => XenForo_Input::STRING,
+            'x_account_number' => XenForo_Input::STRING,
+            'x_amount' => XenForo_Input::STRING,
+            'x_company' => XenForo_Input::STRING,
+            'x_first_name' => XenForo_Input::STRING,
+            'x_last_name' => XenForo_Input::STRING,
+            'x_address' => XenForo_Input::STRING,
+            'x_city' => XenForo_Input::STRING,
+            'x_state' => XenForo_Input::STRING,
+            'x_zip' => XenForo_Input::STRING,
+            'x_country' => XenForo_Input::STRING,
+            'x_phone' => XenForo_Input::STRING,
+            'x_fax' => XenForo_Input::STRING,
+            'x_email' => XenForo_Input::STRING,
+            'x_ship_to_company' => XenForo_Input::STRING,
+            'x_ship_to_first_name' => XenForo_Input::STRING,
+            'x_ship_to_last_name' => XenForo_Input::STRING,
+            'x_ship_to_address' => XenForo_Input::STRING,
+            'x_ship_to_city' => XenForo_Input::STRING,
+            'x_ship_to_state' => XenForo_Input::STRING,
+            'x_ship_to_zip' => XenForo_Input::STRING,
+            'x_ship_to_country' => XenForo_Input::STRING,
             'x_invoice_num' => XenForo_Input::STRING,
-            'x_MD5_Hash' => XenForo_Input::STRING,
-            'x_response_code' => XenForo_Input::UNUM,
-            'x_response_reason_text' => XenForo_Input::STRING,
-            'x_response_reason_code' => XenForo_Input::UINT,
-            'x_custom' => XenForo_Input::STRING
         ));
+        $xSha2Hash = $input->filterSingle('x_SHA2_Hash', XenForo_Input::STRING);
+        $xCustom = $input->filterSingle('x_custom', XenForo_Input::STRING);
 
         $transactionId = (!empty($filtered['x_trans_id']) ? ('authnet_' . $filtered['x_trans_id']) : '');
         $paymentStatus = bdPaygate_Processor_Abstract::PAYMENT_STATUS_OTHER;
         $transactionDetails = array_merge($_POST, $filtered);
-        $itemId = $filtered['x_custom'];
+        $itemId = $xCustom;
         $amount = $filtered['x_amount'];
         $currency = 'n/a';
         $options = XenForo_Application::getOptions();
 
-        $hash = strtoupper(md5(
-            $options->get('bdPaygateAuthorizeNet_md5hash')
-            . $options->get('bdPaygateAuthorizeNet_id')
-            . $filtered['x_trans_id']
-            . $filtered['x_amount']
-        ));
-
-        if ($hash != $filtered['x_MD5_Hash']) {
+        $hashString = '^' . implode('^', $filtered) . '^';
+        $signatureKey = $options->get('bdPaygateAuthorizeNet_signatureKey');
+        $hash = strtoupper(hash_hmac('sha512', $hashString, hex2bin($signatureKey)));
+        if ($hash !== $xSha2Hash) {
             $this->_setError('Request not validated');
             return false;
         }
@@ -111,27 +130,17 @@ class bdPaygateAuthorizeNet_Processor extends bdPaygate_Processor_Abstract
 
         $options = XenForo_Application::getOptions();
         $id = $options->get('bdPaygateAuthorizeNet_id');
-        $key = $options->get('bdPaygateAuthorizeNet_key');
+        $signatureKey = $options->get('bdPaygateAuthorizeNet_signatureKey');
         $sequence = rand(0, 1000);
         $timestamp = XenForo_Application::$time;
         $currencyAuthorizeNet = utf8_strtoupper($currency);
         $callbackUrl = $this->_generateCallbackUrl($extraData);
 
-        if (strpos($callbackUrl, '?') === false) {
-            $callbackUrl .= '?';
-        } else {
-            $callbackUrl .= '&';
-        }
-        $callbackUrl .= 'returnUrl=' . rawurlencode($this->_generateReturnUrl($extraData));
+        $returnUrlCookieName = 'authnet_' . $itemId;
+        XenForo_Helper_Cookie::setCookie($returnUrlCookieName, $this->_generateReturnUrl($extraData));
 
-        $hashParts = array(
-            $id,
-            $sequence,
-            $timestamp,
-            $amount,
-            $currencyAuthorizeNet
-        );
-        $hash = hash_hmac('md5', implode('^', $hashParts), $key);
+        $hashString = "{$id}^{$sequence}^{$timestamp}^{$amount}^{$currencyAuthorizeNet}";
+        $hash = strtoupper(hash_hmac('sha512', $hashString, hex2bin($signatureKey)));
 
         $form = <<<EOF
 <form action="{$formAction}" method="POST">
@@ -159,21 +168,25 @@ EOF;
         // for Authorize.Net relay response architecture, always redirect back to index page
         // TODO: find a better way to do this?
         if ($paymentStatus == bdPaygate_Processor_Abstract::PAYMENT_STATUS_ACCEPTED) {
-            $returnUrl = XenForo_Link::buildPublicLink('canonical:misc/authorize-net-complete');
-
-            if (isset($_REQUEST['returnUrl'])) {
-                $returnUrl = $_REQUEST['returnUrl'];
+            $params = array();
+            if (!empty($_POST['x_custom'])) {
+                $params['x_custom'] = $_POST['x_custom'];
             }
+
+            $returnUrl = XenForo_Link::buildPublicLink('canonical:misc/authorize-net-complete', null, $params);
 
             echo sprintf('<meta http-equiv="refresh" content="0;url=%s"/>', $returnUrl);
             return true;
         }
 
         $input = new XenForo_Input($request);
-        $filtered = $input->filter(array(
-            'x_response_reason_text' => XenForo_Input::STRING,
-        ));
+        $filtered = $input->filter(array('x_response_reason_text' => XenForo_Input::STRING));
         echo $filtered['x_response_reason_text'];
         exit;
+    }
+
+    protected function _generateCallbackUrl(array $extraData)
+    {
+        return XenForo_Application::getOptions()->get('boardUrl') . '/bdpaygate/authnet.php';
     }
 }

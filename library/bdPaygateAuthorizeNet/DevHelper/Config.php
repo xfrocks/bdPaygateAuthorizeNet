@@ -4,15 +4,15 @@ class bdPaygateAuthorizeNet_DevHelper_Config extends DevHelper_Config_Base
 {
     protected $_dataClasses = array();
     protected $_dataPatches = array();
-    protected $_exportPath = '/Users/sondh/Dropbox/XenForo/bdPaygate/MORE/bdPaygateAuthorizeNet';
-    protected $_exportIncludes = array();
+    protected $_exportPath = false;
+    protected $_exportIncludes = array('bdpaygate/authnet.php');
+    protected $_exportExcludes = array();
+    protected $_exportAddOns = array();
+    protected $_exportStyles = array();
+    protected $_options = array();
 
     /**
      * Return false to trigger the upgrade!
-     * common use methods:
-     *  public function addDataClass($name, $fields = array(), $primaryKey = false, $indeces = array())
-     *  public function addDataPatch($table, array $field)
-     *  public function setExportPath($path)
      **/
     protected function _upgrade()
     {
@@ -20,25 +20,25 @@ class bdPaygateAuthorizeNet_DevHelper_Config extends DevHelper_Config_Base
 
         /*
         $this->addDataClass(
-          'name_here',
-          array( // fields
-            'field_here' => array(
-              'type' => 'type_here',
-              // 'length' => 'length_here',
-              // 'required' => true,
-              // 'allowedValues' => array('value_1', 'value_2'),
-              // 'default' => 0,
-              // 'autoIncrement' => true,
+            'name_here',
+            array( // fields
+                'field_here' => array(
+                    'type' => 'type_here',
+                    // 'length' => 'length_here',
+                    // 'required' => true,
+                    // 'allowedValues' => array('value_1', 'value_2'),
+                    // 'default' => 0,
+                    // 'autoIncrement' => true,
+                ),
+                // other fields go here
             ),
-            // other fields go here
-          ),
-          'primary_key_field_here',
-          array( // indeces
-            array(
-              'fields' => array('field_1', 'field_2'),
-              'type' => 'NORMAL', // UNIQUE or FULLTEXT
+            array('primary_key_1', 'primary_key_2'), // or 'primary_key', both are okie
+            array( // indeces
+                array(
+                    'fields' => array('field_1', 'field_2'),
+                    'type' => 'NORMAL', // UNIQUE or FULLTEXT
+                ),
             ),
-          ),
         );
         */
     }
