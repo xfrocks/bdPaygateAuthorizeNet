@@ -3,7 +3,6 @@
 namespace Xfrocks\AuthorizeNetArb\Util;
 
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
 use net\authorize\api\constants as AnetConstants;
 use net\authorize\api\contract\v1 as AnetAPI;
@@ -450,8 +449,12 @@ class Sdk
     ) {
         $client = \XF::app()->http()->client();
 
+        /** @var string $body */
+        $body = null;
+        /** @var \Exception $exception */
         $exception = null;
-        $response = null;
+        /** @var int $statusCode */
+        $statusCode = null;
 
         $options = [
             RequestOptions::AUTH => [$apiLoginId, $transactionKey],
@@ -462,9 +465,9 @@ class Sdk
 
         try {
             $response = $client->request($method, $url, $options);
-        } catch (RequestException $e) {
-            $exception = $e;
-            $response = $e->getResponse();
+            $body = $response->getBody()->getContents();
+            $statusCode = $response->getStatusCode();
+            $json = \GuzzleHttp\json_decode($body, true);
         } catch (\Exception $e) {
             $exception = $e;
         } catch (GuzzleException $e) {
@@ -479,8 +482,8 @@ class Sdk
                 $method,
                 $url,
                 json_encode($options),
-                $response->getStatusCode(),
-                $response->getBody()
+                $statusCode,
+                $body
             ));
         }
 
@@ -488,7 +491,7 @@ class Sdk
             throw $exception;
         }
 
-        return $response->json();
+        return $json;
     }
 
     /**
