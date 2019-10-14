@@ -1,8 +1,8 @@
 {
     "admin/payment_profile_authorizenet.html": {
-        "version_id": 1000000,
-        "version_string": "1.0.0",
-        "hash": "636db9f8cae76e1d40ac3f4d92ba083e"
+        "version_id": 1001370,
+        "version_string": "1.0.13",
+        "hash": "df08e8d380502ed1529bb88dfc95915a"
     },
     "public/Xfrocks_AuthorizeNetArb_payment_cancel_recurring.html": {
         "version_id": 1000000,

@@ -504,7 +504,6 @@ class Provider extends AbstractProvider
             'api_login_id',
             'transaction_key',
             'signature_key',
-            'secret_key',
             'public_client_key'
         ];
         foreach ($requiredOptionKeys as $requiredOptionKey) {

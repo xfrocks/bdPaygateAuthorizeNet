@@ -119,12 +119,6 @@
         "version_string": "1.0.0",
         "hash": "dc0793628fc75abce7c1d7aeafbe7618"
     },
-    "Xfrocks_AuthorizeNetArb_secret_key.txt": {
-        "global_cache": false,
-        "version_id": 1000000,
-        "version_string": "1.0.0",
-        "hash": "5eb6bb157528b365f84c27bb4784031b"
-    },
     "Xfrocks_AuthorizeNetArb_signature_key.txt": {
         "global_cache": false,
         "version_id": 1000000,
