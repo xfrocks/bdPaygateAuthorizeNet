@@ -2,7 +2,9 @@
 
 namespace Xfrocks\AuthorizeNetArb\Util;
 
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\RequestOptions;
 use net\authorize\api\constants as AnetConstants;
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
@@ -32,6 +34,7 @@ class Sdk
      * @param string $apiLoginId
      * @param string $transactionKey
      * @param string $callbackUrl
+     * @return void
      * @throws \Exception
      */
     public static function assertWebhookExists($apiLoginId, $transactionKey, $callbackUrl)
@@ -48,7 +51,7 @@ class Sdk
         $existingEventTypes = [];
 
         $webhooks = self::createHttpRequestAndSend($apiLoginId, $transactionKey, $url);
-        if (!empty($webhooks)) {
+        if (is_array($webhooks)) {
             foreach ($webhooks as $webhook) {
                 if ($webhook['url'] === $callbackUrl) {
                     $existingWebhook = $webhook;
@@ -79,13 +82,13 @@ class Sdk
         ];
         if ($existingWebhook === null) {
             $newWebhook = self::createHttpRequestAndSend($apiLoginId, $transactionKey, $url, 'POST', $json);
-            if (empty($newWebhook['webhookId'])) {
+            if (!is_array($newWebhook) || !isset($newWebhook['webhookId'])) {
                 throw new \Exception('Webhook cannot be created');
             }
         } else {
             $updateUrl = self::getEndpoint() . $existingWebhook['_links']['self']['href'];
             $updatedWebhook = self::createHttpRequestAndSend($apiLoginId, $transactionKey, $updateUrl, 'PUT', $json);
-            if (empty($updatedWebhook['webhookId'])) {
+            if (!is_array($updatedWebhook) || !isset($updatedWebhook['webhookId'])) {
                 throw new \Exception('Webhook cannot be updated');
             }
         }
@@ -375,6 +378,9 @@ class Sdk
         return $signature === $expected;
     }
 
+    /**
+     * @return void
+     */
     private static function autoload()
     {
         static $loaded = false;
@@ -389,6 +395,7 @@ class Sdk
     /**
      * @param int $amount
      * @param string $unit
+     * @return void
      * @throws \Exception
      */
     private static function assertRecurringLength($amount, $unit)
@@ -447,17 +454,22 @@ class Sdk
         $response = null;
 
         $options = [
-            'auth' => [$apiLoginId, $transactionKey],
+            RequestOptions::AUTH => [$apiLoginId, $transactionKey],
         ];
         if (is_array($json)) {
-            $options['json'] = $json;
+            $options[RequestOptions::JSON] = $json;
         }
 
         try {
-            $response = $client->send($client->createRequest($method, $url, $options));
+            $response = $client->request($method, $url, $options);
         } catch (RequestException $e) {
             $exception = $e;
             $response = $e->getResponse();
+        } catch (\Exception $e) {
+            $exception = $e;
+        } catch (GuzzleException $e) {
+            // ignore
+            $exception = new \RuntimeException('Unexpected GuzzleException');
         }
 
         if (\XF::$debugMode) {

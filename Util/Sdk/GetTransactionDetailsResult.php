@@ -26,13 +26,9 @@ class GetTransactionDetailsResult extends BaseResult
             return null;
         }
 
+        /** @var AnetAPI\OrderExType|null $order */
         $order = $transaction->getOrder();
-
-        if (empty($order)) {
-            return null;
-        }
-
-        return $order->getInvoiceNumber();
+        return $order !== null ? $order->getInvoiceNumber() : null;
     }
 
     /**
@@ -67,12 +63,9 @@ class GetTransactionDetailsResult extends BaseResult
             return null;
         }
 
+        /** @var AnetAPI\SubscriptionPaymentType|null $subscription */
         $subscription = $transaction->getSubscription();
-        if (empty($subscription)) {
-            return null;
-        }
-
-        return $subscription->getId();
+        return $subscription !== null ? $transaction->getSubscription()->getId() : null;
     }
 
     public function toArray()

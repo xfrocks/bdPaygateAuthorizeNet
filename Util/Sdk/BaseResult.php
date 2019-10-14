@@ -7,6 +7,9 @@ use XF\Util\Php;
 
 class BaseResult
 {
+    /**
+     * @var AnetAPI\ANetApiResponseType
+     */
     protected $apiResponse;
 
     /**
@@ -65,11 +68,11 @@ class BaseResult
      */
     public static function castToArray($obj)
     {
-        $isEmpty = empty($obj);
+        $isNull = $obj === null;
         $isObject = is_object($obj);
-        if ($isEmpty || !$isObject) {
+        if ($isNull || !$isObject) {
             return [
-                '_isEmpty' => $isEmpty,
+                '_isNull' => $isNull,
                 '_isObject' => $isObject,
                 '_serialized' => Php::safeSerialize($obj),
             ];
@@ -78,7 +81,7 @@ class BaseResult
         $class = get_class($obj);
         $array = array();
         foreach ((array)$obj as $key => $value) {
-            if (empty($value)) {
+            if ($value === null || $value === '') {
                 continue;
             }
 

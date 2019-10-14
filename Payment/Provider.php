@@ -14,11 +14,14 @@ use Xfrocks\AuthorizeNetArb\Util\Sdk;
 
 class Provider extends AbstractProvider
 {
+    /**
+     * @return string
+     */
     public function getCallbackUrl()
     {
         if (\XF::$debugMode) {
             $callbackUrl = \XF::config(__METHOD__);
-            if (!empty($callbackUrl)) {
+            if (is_string($callbackUrl)) {
                 return $callbackUrl;
             }
         }
@@ -26,24 +29,37 @@ class Provider extends AbstractProvider
         return \XF::app()->options()->boardUrl . '/payment_callback_authorizenet.php';
     }
 
+    /**
+     * @param CallbackState $state
+     * @return void
+     */
     public function getPaymentResult(CallbackState $state)
     {
-        if (!empty($state->reversedTransId)) {
+        if (isset($state->reversedTransId)) {
             $state->paymentResult = CallbackState::PAYMENT_REVERSED;
             return;
         }
 
-        if (!empty($state->eventType) && $state->eventType === Sdk::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE) {
+        if (isset($state->eventType) && $state->eventType === Sdk::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE) {
             $state->paymentResult = CallbackState::PAYMENT_RECEIVED;
             return;
         }
     }
 
+    /**
+     * @return string
+     */
     public function getTitle()
     {
         return 'Authorize.Net with ARB';
     }
 
+    /**
+     * @param Controller $controller
+     * @param PurchaseRequest $purchaseRequest
+     * @param Purchase $purchase
+     * @return \XF\Mvc\Reply\View
+     */
     public function initiatePayment(Controller $controller, PurchaseRequest $purchaseRequest, Purchase $purchase)
     {
         $viewParams = [
@@ -62,21 +78,32 @@ class Provider extends AbstractProvider
         );
     }
 
+    /**
+     * @param CallbackState $state
+     * @return void
+     */
     public function prepareLogData(CallbackState $state)
     {
-        if (empty($state->logDetails)) {
+        if (!isset($state->logDetails)) {
             $state->logDetails = [];
         }
 
-        if (!empty($state->inputRaw)) {
+        if (isset($state->inputRaw) && !isset($state->logDetails['inputRaw'])) {
             $state->logDetails['inputRaw'] = $state->inputRaw;
         }
 
-        if (!empty($state->apiTransaction)) {
+        if (isset($state->apiTransaction) && !isset($state->logDetails['apiTransaction'])) {
             $state->logDetails['apiTransaction'] = $state->apiTransaction;
         }
     }
 
+    /**
+     * @param Controller $controller
+     * @param PurchaseRequest $purchaseRequest
+     * @param PaymentProfile $paymentProfile
+     * @return \XF\Mvc\Reply\AbstractReply|\XF\Mvc\Reply\Error|\XF\Mvc\Reply\Redirect
+     * @throws \XF\Mvc\Reply\Exception
+     */
     public function processCancellation(
         Controller $controller,
         PurchaseRequest $purchaseRequest,
@@ -119,6 +146,15 @@ class Provider extends AbstractProvider
         );
     }
 
+    /**
+     * @param Controller $controller
+     * @param PurchaseRequest $purchaseRequest
+     * @param PaymentProfile $paymentProfile
+     * @param Purchase $purchase
+     * @return \XF\Mvc\Reply\Redirect|null
+     * @throws \XF\Mvc\Reply\Exception
+     * @throws \Exception
+     */
     public function processPayment(
         Controller $controller,
         PurchaseRequest $purchaseRequest,
@@ -127,19 +163,19 @@ class Provider extends AbstractProvider
     ) {
         $ppOptions = $paymentProfile->options;
         $opaqueDataJson = $controller->filter('opaque_data', 'str');
-        if (empty($opaqueDataJson)) {
+        if ($opaqueDataJson === '') {
             throw $controller->exception($controller->error(\XF::phrase('something_went_wrong_please_try_again')));
         }
 
         $inputFilters = [];
-        if (!empty($ppOptions['require_names'])) {
+        if (!!$ppOptions['require_names']) {
             $inputFilters['first_name'] = 'str';
             $inputFilters['last_name'] = 'str';
         }
-        if (!empty($ppOptions['require_email'])) {
+        if (!!$ppOptions['require_email']) {
             $inputFilters['email'] = 'str';
         }
-        if (!empty($ppOptions['require_address'])) {
+        if (!!$ppOptions['require_address']) {
             $inputFilters['address'] = 'str';
             $inputFilters['city'] = 'str';
             $inputFilters['state'] = 'str';
@@ -147,7 +183,7 @@ class Provider extends AbstractProvider
         }
         $inputs = $controller->filter($inputFilters);
         foreach (array_keys($inputFilters) as $inputKey) {
-            if (!empty($inputs[$inputKey])) {
+            if (strlen($inputs[$inputKey]) > 0) {
                 continue;
             }
 
@@ -250,6 +286,10 @@ class Provider extends AbstractProvider
         );
     }
 
+    /**
+     * @param \XF\Http\Request $request
+     * @return CallbackState
+     */
     public function setupCallback(\XF\Http\Request $request)
     {
         $state = new CallbackState();
@@ -271,12 +311,12 @@ class Provider extends AbstractProvider
         /** @noinspection PhpUndefinedFieldInspection */
         $state->eventType = $filtered['eventType'];
 
-        if (empty($filtered['payload']) || empty($filtered['payload']['entityName'])) {
+        if (!isset($filtered['payload']['entityName'])) {
             return $state;
         }
         switch ($filtered['payload']['entityName']) {
             case 'transaction':
-                if (!empty($filtered['payload']['authAmount'])) {
+                if (isset($filtered['payload']['authAmount'])) {
                     /** @noinspection PhpUndefinedFieldInspection */
                     $state->authAmount = $filtered['payload']['authAmount'];
                 }
@@ -288,11 +328,21 @@ class Provider extends AbstractProvider
         return $state;
     }
 
+    /**
+     * @param PaymentProfile $paymentProfile
+     * @param mixed $currencyCode
+     * @return bool
+     */
     public function verifyCurrency(PaymentProfile $paymentProfile, $currencyCode)
     {
         return $currencyCode === 'USD';
     }
 
+    /**
+     * @param CallbackState $state
+     * @return bool
+     * @throws \Exception
+     */
     public function validateCallback(CallbackState $state)
     {
         /** @var Payment $paymentRepo */
@@ -331,7 +381,7 @@ class Provider extends AbstractProvider
 
                 $state->requestKey = $infoLog->purchase_request_key;
 
-                if (!empty($state->eventType) && $state->eventType === Sdk::WEBHOOK_EVENT_TYPE_VOID) {
+                if (isset($state->eventType) && $state->eventType === Sdk::WEBHOOK_EVENT_TYPE_VOID) {
                     /** @noinspection PhpUndefinedFieldInspection */
                     $state->reversedTransId = $state->transactionId;
                     $state->transactionId .= ':voided';
@@ -348,7 +398,7 @@ class Provider extends AbstractProvider
                 $transactionOk = $transaction;
 
                 $subscriptionId = $transactionOk->getSubscriptionId();
-                if (!empty($subscriptionId)) {
+                if ($subscriptionId != null) {
                     $state->subscriberId = $subscriptionId;
 
                     /** @var PaymentProviderLog|null $providerLog */
@@ -363,8 +413,7 @@ class Provider extends AbstractProvider
 
                 if (!$state->requestKey) {
                     $reversedTransId = $transactionOk->getReversedTransId();
-
-                    if (!empty($reversedTransId)) {
+                    if ($reversedTransId != null) {
                         $infoLogs = $paymentRepo->findLogsByTransactionId($reversedTransId, 'info');
                         foreach ($infoLogs as $infoLog) {
                             if ($infoLog->provider_id !== $this->getProviderId()) {
@@ -383,8 +432,7 @@ class Provider extends AbstractProvider
                     // Authorize.Net does not mark the first transaction for ARB as recurring billing
                     // we have to rely on the invoice number to process it
                     $invoiceNumber = $transactionOk->getInvoiceNumber();
-
-                    if (!empty($invoiceNumber) && preg_match('/^(\d+)(:\d+)?$/', $invoiceNumber, $matches)) {
+                    if (preg_match('/^(\d+)(:\d+)?$/', strval($invoiceNumber), $matches) === 1) {
                         $purchaseRequestId = $matches[1];
 
                         /** @var PurchaseRequest|null $purchaseRequest */
@@ -407,9 +455,13 @@ class Provider extends AbstractProvider
         return true;
     }
 
+    /**
+     * @param CallbackState $state
+     * @return bool
+     */
     public function validateCost(CallbackState $state)
     {
-        if (empty($state->eventType)) {
+        if (!isset($state->eventType)) {
             $state->logType = 'error';
             $state->logMessage = 'Missing event type';
             return false;
@@ -417,7 +469,7 @@ class Provider extends AbstractProvider
 
         switch ($state->eventType) {
             case Sdk::WEBHOOK_EVENT_TYPE_AUTH_AND_CAPTURE:
-                if (empty($state->authAmount)) {
+                if (!isset($state->authAmount)) {
                     $state->logType = 'error';
                     $state->logMessage = 'Missing auth amount';
                     return false;
@@ -437,6 +489,11 @@ class Provider extends AbstractProvider
         return true;
     }
 
+    /**
+     * @param array $options
+     * @param mixed $errors
+     * @return bool
+     */
     public function verifyConfig(array &$options, &$errors = [])
     {
         if (!is_array($errors)) {
@@ -451,7 +508,7 @@ class Provider extends AbstractProvider
             'public_client_key'
         ];
         foreach ($requiredOptionKeys as $requiredOptionKey) {
-            if (empty($options[$requiredOptionKey])) {
+            if (!isset($options[$requiredOptionKey]) || strlen($options[$requiredOptionKey]) === 0) {
                 $errors[] = \XF::phrase(
                     'Xfrocks_AuthorizeNetArb_you_must_provide_option_x_to_setup_this_payment',
                     [

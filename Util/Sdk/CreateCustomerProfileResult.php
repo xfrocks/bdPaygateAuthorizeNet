@@ -32,7 +32,8 @@ class CreateCustomerProfileResult extends BaseResult
      */
     private function getCustomerProfileResponse()
     {
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->apiResponse;
+        /** @var AnetAPI\CreateCustomerProfileResponse $response */
+        $response = $this->apiResponse;
+        return $response;
     }
 }
