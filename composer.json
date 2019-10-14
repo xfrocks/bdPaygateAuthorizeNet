@@ -1,6 +1,14 @@
 {
-    "require": {
-        "php": ">=5.6",
-        "authorizenet/authorizenet": "~1.9"
-    }
+  "require": {
+    "php": ">=5.6",
+    "authorizenet/authorizenet": "1.9.9",
+    "doctrine/annotations": "1.4.0",
+    "doctrine/instantiator": "1.0.5",
+    "doctrine/lexer": "1.0.2",
+    "jms/serializer": "1.14.0",
+    "symfony/yaml": "3.4.32"
+  },
+  "config": {
+    "autoloader-suffix": "c411d7c6b92928cf02e83f3c6bc36916"
+  }
 }
