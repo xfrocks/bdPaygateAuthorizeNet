@@ -168,14 +168,14 @@ class Provider extends AbstractProvider
         }
 
         $inputFilters = [];
-        if (!!$ppOptions['require_names']) {
+        if (isset($ppOptions['require_names']) && !!$ppOptions['require_names']) {
             $inputFilters['first_name'] = 'str';
             $inputFilters['last_name'] = 'str';
         }
-        if (!!$ppOptions['require_email']) {
+        if (isset($ppOptions['require_email']) && !!$ppOptions['require_email']) {
             $inputFilters['email'] = 'str';
         }
-        if (!!$ppOptions['require_address']) {
+        if (isset($ppOptions['require_address']) && !!$ppOptions['require_address']) {
             $inputFilters['address'] = 'str';
             $inputFilters['city'] = 'str';
             $inputFilters['state'] = 'str';
