@@ -303,7 +303,7 @@ class Provider extends AbstractProvider
         /** @noinspection PhpUndefinedFieldInspection */
         $state->inputRaw = $inputRaw = $request->getInputRaw();
         $input = @json_decode($inputRaw, true);
-        $filtered = \XF::app()->inputFilterer()->filterArray($input ?: [], [
+        $filtered = \XF::app()->inputFilterer()->filterArray(is_array($input) ? $input : [], [
             'eventType' => 'str',
             'payload' => 'array',
         ]);

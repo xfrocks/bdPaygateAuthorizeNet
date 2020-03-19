@@ -105,6 +105,11 @@ class Sdk
     {
         self::autoload();
 
+        $paymentProfile = $purchaseRequest->PaymentProfile;
+        if ($paymentProfile === null) {
+            throw new \InvalidArgumentException('Payment profile is missing');
+        }
+
         $customerAddress = new AnetAPI\CustomerAddressType();
         $customerAddressHasData = false;
         if (isset($inputs['first_name']) && isset($inputs['last_name'])) {
@@ -168,7 +173,7 @@ class Sdk
         $transactionRequest->setTransactionType('authCaptureTransaction');
 
         $request = new AnetAPI\CreateTransactionRequest();
-        $request->setMerchantAuthentication(self::newMerchantAuthentication($purchaseRequest->PaymentProfile));
+        $request->setMerchantAuthentication(self::newMerchantAuthentication($paymentProfile));
         $request->setTransactionRequest($transactionRequest);
 
         $controller = new AnetController\CreateTransactionController($request);
@@ -260,6 +265,9 @@ class Sdk
 
         $enableLivePayments = !!\XF::config('enableLivePayments');
         $paymentProfile = $purchaseRequest->PaymentProfile;
+        if ($paymentProfile === null) {
+            throw new \InvalidArgumentException('Payment profile is missing');
+        }
 
         $order = new AnetAPI\OrderType();
         $invoiceNumber = strval($purchaseRequest->purchase_request_id);
@@ -451,7 +459,7 @@ class Sdk
 
         /** @var string $body */
         $body = null;
-        /** @var \Exception $exception */
+        /** @var \Exception|null $exception */
         $exception = null;
         /** @var int $statusCode */
         $statusCode = null;

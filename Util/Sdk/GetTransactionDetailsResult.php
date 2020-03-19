@@ -10,7 +10,7 @@ class GetTransactionDetailsResult extends BaseResult
     {
         $transaction = $this->getTransaction();
         if ($transaction === null) {
-            return null;
+            return false;
         }
 
         return $transaction->getResponseCode() === 1;
