@@ -449,6 +449,10 @@ class Provider extends AbstractProvider
         if (!$state->getPurchaseRequest()) {
             $state->logType = 'error';
             $state->logMessage = 'Purchase request cannot be detected.';
+
+            // this is required to avoid webhook being disabled
+            $state->httpCode = 200;
+
             return false;
         }
 
