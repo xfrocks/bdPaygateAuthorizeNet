@@ -31,8 +31,12 @@ class ChargeBaseResult extends BaseResult
             return $errorTexts;
         }
 
-        /** @var AnetAPI\TransactionResponseType\ErrorsAType\ErrorAType[] $errors */
+//        /** @var AnetAPI\TransactionResponseType\ErrorsAType\ErrorAType[]|null $errors */
         $errors = $t->getErrors();
+        if (!is_array($errors)) {
+            return $errorTexts;
+        }
+
         foreach ($errors as $error) {
             $errorId = $error->getErrorCode();
             if (isset($errorTexts[$errorId])) {
