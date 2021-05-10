@@ -437,8 +437,8 @@ class Provider extends AbstractProvider
 
                         /** @var PurchaseRequest|null $purchaseRequest */
                         $purchaseRequest = \XF::em()->findOne('XF:PurchaseRequest', [
-                            'purchase_request_id = ?' => $purchaseRequestId,
-                            'payment_profile_id = ?' => $state->paymentProfile->payment_profile_id,
+                            'purchase_request_id' => $purchaseRequestId,
+                            'payment_profile_id' => $state->paymentProfile->payment_profile_id,
                         ]);
 
                         if ($purchaseRequest !== null) {
