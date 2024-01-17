@@ -1,1 +1,0 @@
-These check boxes should match your Authorize.Net settings.

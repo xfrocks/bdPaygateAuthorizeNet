@@ -1,1 +1,0 @@
-This can be obtained in Authorize.Net Merchant Interface: Account > Settings > Security Settings > General Security Settings > API Credentials &amp; Keys. You will need to enter your answer to the secret question and select "New Signature Key" to create it.

@@ -1,1 +1,0 @@
-You must provide a valid {option} to set up this payment profile.

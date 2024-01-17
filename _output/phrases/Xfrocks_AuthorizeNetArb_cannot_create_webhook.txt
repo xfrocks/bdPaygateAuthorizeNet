@@ -1,1 +1,0 @@
-Cannot manage webhook via the API, you will now need to create it manually with the URL {callbackUrl} and all Payment Events. Try to save the Payment Profile again after doing that.

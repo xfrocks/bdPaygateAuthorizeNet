@@ -1,4 +1,0 @@
-Something went wrong, please try again or contact the administrator for further assistance. Some information regarding your issues:<br />
-<ul>
-	<li>{errors}</li>
-</ul>

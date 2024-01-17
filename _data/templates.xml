@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+  <template type="admin" title="payment_profile_authorizenet" version_id="1001370" version_string="1.0.13"><![CDATA[<xf:textboxrow name="options[api_login_id]" value="{$profile.options.api_login_id}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_api_login_id') }}"
+               explain="{{ phrase('Xfrocks_AuthorizeNetArb_api_login_id_explain') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[transaction_key]" value="{$profile.options.transaction_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_transaction_key') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[signature_key]" value="{$profile.options.signature_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_signature_key') }}"
+               explain="{{ phrase('Xfrocks_AuthorizeNetArb_signature_key_explain') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:textboxrow name="options[public_client_key]" value="{$profile.options.public_client_key}"
+               label="{{ phrase('Xfrocks_AuthorizeNetArb_public_client_key') }}"
+               explain="{{ phrase('Xfrocks_AuthorizeNetArb_public_client_key_explain') }}"
+               hint="{{ phrase('required') }}"/>
+
+<xf:checkboxrow label="" explain="{{ phrase('Xfrocks_AuthorizeNetArb_require_explain') }}">
+    <xf:option name="options[require_names]" value="1" selected="{$profile.options.require_names}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_names') }}
+    </xf:option>
+    <xf:option name="options[require_email]" value="1" selected="{$profile.options.require_email}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_email') }}
+    </xf:option>
+    <xf:option name="options[require_address]" value="1" selected="{$profile.options.require_address}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_address') }}
+    </xf:option>
+    <xf:option name="options[require_card_code]" value="1" selected="{$profile.options.require_card_code}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_card_code') }}
+    </xf:option>
+</xf:checkboxrow>
+]]></template>
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_cancel_recurring" version_id="1000000" version_string="1.0.0"><![CDATA[<div>
+	<xf:button href="{{ link('purchase/cancel-recurring', null, {'request_key': $purchaseRequest.request_key}) }}"
+		overlay="true" target="_blank">
+		{{ phrase('button.cancel') }}
+	</xf:button>
+</div>]]></template>
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1001170" version_string="1.0.11"><![CDATA[<xf:css src="payment_initiate.less"/>
+<xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb"/>
+
+<xf:title>{{ phrase('enter_payment_details') }}</xf:title>
+
+<xf:if is="{$enableLivePayments}">
+    <xf:js src="https://js.authorize.net/v1/Accept.js"/>
+    <xf:else/>
+    <xf:js src="https://jstest.authorize.net/v1/Accept.js"/>
+</xf:if>
+
+<div class="blocks">
+    <xf:form action="{{ link('purchase/process', null, {'request_key': $purchaseRequest.request_key}) }}"
+             class="block block--paymentInitiate" data-xf-init="authorizenet-payment-form ajax-submit"
+             data-api-login-id="{$paymentProfile.options.api_login_id}"
+             data-phrase-preparing="{{ phrase('Xfrocks_AuthorizeNetArb_progress_text_preparing') }}"
+             data-phrase-processing="{{ phrase('Xfrocks_AuthorizeNetArb_progress_text_processing') }}"
+             data-progress-text-selector=".progressText"
+             data-public-client-key="{$paymentProfile.options.public_client_key}">
+        <div class="block-container">
+            <div class="block-body">
+                <xf:formrow rowtype="input"
+                            label="{{ phrase('pay_by_card') }}">
+                    <div class="inputGroup">
+                        <input type="text" rel="card-number" class="input" maxlength="16" required
+                               autocomplete="cc-number"/>
+                    </div>
+
+                    <br/>
+                    <div class="inputGroup">
+                        <div class="inputGroup-text">
+                            {{ phrase('Xfrocks_AuthorizeNetArb_expiration_date') }}
+                        </div>
+                        <input type="text" rel="month" class="input" maxlength="2" required
+                               autocomplete="cc-exp-month" style="width: 3em;"/>
+                        <div class="inputGroup-text">
+                            /
+                        </div>
+                        <input type="text" rel="year" class="input" maxlength="4" required
+                               autocomplete="cc-exp-year" style="width: 4em;"/>
+
+                        <xf:if is="{$paymentProfile.options.require_card_code}">
+                            <div class="inputGroup-text">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                {{ phrase('Xfrocks_AuthorizeNetArb_card_code') }}
+                            </div>
+                            <input type="text" rel="card-code" class="input" maxlength="4" required
+                                   autocomplete="cc-csv" style="width: 4em;"/>
+                        </xf:if>
+                    </div>
+
+                    <div class="formRow-explain">
+                        {{ phrase('payments_processed_securely_by_x', {
+                        'link': 'https://authorize.net/',
+                        'provider': 'Authorize.Net'
+                        })}}
+                    </div>
+                </xf:formrow>
+
+                <xf:if is="{$paymentProfile.options.require_names}">
+                    <xf:formrow rowtype="input"
+                                label="{{ phrase('Xfrocks_AuthorizeNetArb_full_name') }}">
+                        <div class="inputGroup">
+                            <input type="text" name="first_name" class="input" maxlength="50" required
+                                   autocomplete="given-name"/>
+                            <div class="inputGroup-splitter"></div>
+                            <input type="text" name="last_name" class="input" maxlength="50" required
+                                   autocomplete="family-name"/>
+                        </div>
+                    </xf:formrow>
+                </xf:if>
+
+                <xf:if is="{$paymentProfile.options.require_email}">
+                    <xf:textboxrow label="{{ phrase('email') }}"
+                                   name="email" maxlength="255" required="required"
+                                   value="{$xf.visitor.email}" autocomplete="email"/>
+                </xf:if>
+
+                <xf:if is="{$paymentProfile.options.require_address}">
+                    <xf:formrow rowtype="input"
+                                label="{{ phrase('Xfrocks_AuthorizeNetArb_address') }}">
+                        <div class="inputGroup">
+                            <input type="text" name="address" class="input" maxlength="60" required
+                                   autocomplete="billing street-address"/>
+                        </div>
+
+                        <br/>
+                        <div class="inputGroup">
+                            <input type="text" name="city" class="input" maxlength="40" required
+                                   autocomplete="billing address-level2"/>
+                        </div>
+
+                        <br/>
+                        <div class="inputGroup">
+                            <div class="inputGroup-text">
+                                {{ phrase('Xfrocks_AuthorizeNetArb_state') }}
+                            </div>
+                            <input type="text" name="state" class="input" maxlength="40" required
+                                   autocomplete="billing address-level1"/>
+
+                            <div class="inputGroup-text">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                {{ phrase('Xfrocks_AuthorizeNetArb_zip') }}
+                            </div>
+                            <input type="text" name="zip" class="input" maxlength="20" required
+                                   autocomplete="billing postal-code"/>
+                        </div>
+                    </xf:formrow>
+                </xf:if>
+
+                <hr class="formRowSep"/>
+
+                <xf:formrow label="" rowtype="button">
+                    <xf:button type="submit" icon="payment">
+                        {{ phrase('pay_x', {'cost': $purchase.cost|currency($purchase.currency)}) }}
+                    </xf:button>
+
+                    <div class="formRow-explain progressText"></div>
+                </xf:formrow>
+            </div>
+        </div>
+
+        <xf:hiddenval name="opaque_data" value=""/>
+    </xf:form>
+</div>]]></template>
+</templates>
