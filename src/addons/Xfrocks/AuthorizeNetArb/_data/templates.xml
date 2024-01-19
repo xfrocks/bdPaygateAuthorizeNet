@@ -32,15 +32,41 @@
     <xf:option name="options[require_card_code]" value="1" selected="{$profile.options.require_card_code}">
         {{ phrase('Xfrocks_AuthorizeNetArb_require_card_code') }}
     </xf:option>
+    <xf:option name="options[require_phone_number]" value="1" selected="{$profile.options.require_phone_number}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_require_phone_number') }}
+    </xf:option>
 </xf:checkboxrow>
-]]></template>
+
+<xf:checkboxrow label="" explain="{{ phrase('Xfrocks_AuthorizeNetArb_display_credit_cards') }}">
+    <xf:option name="options[display_creditcards_amex]" value="1" selected="{$profile.options.display_creditcards_amex}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_amex') }}
+    </xf:option>
+    <xf:option name="options[display_creditcards_diners_club]" value="1" selected="{$profile.options.display_creditcards_diners_club}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_diners_club') }}
+    </xf:option>
+    <xf:option name="options[display_creditcards_discover]" value="1" selected="{$profile.options.display_creditcards_discover}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_discover') }}
+    </xf:option>
+    <xf:option name="options[display_creditcards_enroute]" value="1" selected="{$profile.options.display_creditcards_enroute}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_enroute') }}
+    </xf:option>
+    <xf:option name="options[display_creditcards_jcb]" value="1" selected="{$profile.options.display_creditcards_jcb}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_jcb') }}
+    </xf:option>
+    <xf:option name="options[display_creditcards_mastercard]" value="1" selected="{$profile.options.display_creditcards_mastercard}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_mastercard') }}
+    </xf:option>
+    <xf:option name="options[display_creditcards_visa]" value="1" selected="{$profile.options.display_creditcards_visa}">
+        {{ phrase('Xfrocks_AuthorizeNetArb_visa') }}
+    </xf:option>
+</xf:checkboxrow>]]></template>
   <template type="public" title="Xfrocks_AuthorizeNetArb_payment_cancel_recurring" version_id="1000000" version_string="1.0.0"><![CDATA[<div>
 	<xf:button href="{{ link('purchase/cancel-recurring', null, {'request_key': $purchaseRequest.request_key}) }}"
 		overlay="true" target="_blank">
 		{{ phrase('button.cancel') }}
 	</xf:button>
 </div>]]></template>
-  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1001170" version_string="1.0.11"><![CDATA[<xf:css src="payment_initiate.less"/>
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1040070" version_string="1.4.0"><![CDATA[<xf:css src="payment_initiate.less"/>
 <xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb"/>
 
 <xf:title>{{ phrase('enter_payment_details') }}</xf:title>
@@ -64,10 +90,34 @@
                 <xf:formrow rowtype="input"
                             label="{{ phrase('pay_by_card') }}">
                     <div class="inputGroup">
-                        <input type="text" rel="card-number" class="input" maxlength="16" required
-                               autocomplete="cc-number"/>
+                        <input type="text" rel="card-number" class="input" maxlength="16" style="width: 12em;" required
+                               autocomplete="cc-number"/>				
                     </div>
-
+					<xf:if is="{$displayCardIcons}">
+						<div class="formRow-explain">
+							<xf:if is="{$paymentProfile.options.display_creditcards_amex}">
+								<xf:fa icon="fab fa-cc-amex fa-lg" title="{{phrase('Xfrocks_AuthorizeNetArb_amex')}}" />&nbsp;
+							</xf:if>
+							<xf:if is="{$paymentProfile.options.display_creditcards_diners_club}">
+								<xf:fa icon="fab fa-cc-diners-club fa-lg" title="{{phrase('Xfrocks_AuthorizeNetArb_diners_club')}}" />&nbsp;
+							</xf:if>
+							<xf:if is="{$paymentProfile.options.display_creditcards_discover}">
+								<xf:fa icon="fab fa-cc-discover fa-lg" title="{{phrase('Xfrocks_AuthorizeNetArb_discover')}}" />&nbsp;
+							</xf:if>
+							<xf:if is="{$paymentProfile.options.display_creditcards_jcb}">
+								<xf:fa icon="fab fa-cc-jcb fa-lg" title="{{phrase('Xfrocks_AuthorizeNetArb_jcb')}}" />&nbsp;
+							</xf:if>
+							<xf:if is="{$paymentProfile.options.display_creditcards_mastercard}">
+								<xf:fa icon="fab fa-cc-mastercard fa-lg" title="{{phrase('Xfrocks_AuthorizeNetArb_mastercard')}}" />&nbsp;
+							</xf:if>
+							<xf:if is="{$paymentProfile.options.display_creditcards_visa}">
+								<xf:fa icon="fab fa-cc-visa fa-lg" title="{{phrase('Xfrocks_AuthorizeNetArb_visa')}}" />&nbsp;
+							</xf:if>
+							<xf:if is="{$paymentProfile.options.display_creditcards_enroute}">
+								{{phrase('Xfrocks_AuthorizeNetArb_enroute')}}
+							</xf:if>
+						</div>
+					</xf:if>
                     <br/>
                     <div class="inputGroup">
                         <div class="inputGroup-text">
@@ -116,6 +166,12 @@
                     <xf:textboxrow label="{{ phrase('email') }}"
                                    name="email" maxlength="255" required="required"
                                    value="{$xf.visitor.email}" autocomplete="email"/>
+                </xf:if>
+				
+				<xf:if is="{$paymentProfile.options.require_phone_number}">
+                    <xf:textboxrow label="{{ phrase('Xfrocks_AuthorizeNetArb_phone_number') }}"
+                                   name="phone" maxlength="15" style="width: 10em;" required="required"
+                                   value="" autocomplete="phone" />
                 </xf:if>
 
                 <xf:if is="{$paymentProfile.options.require_address}">

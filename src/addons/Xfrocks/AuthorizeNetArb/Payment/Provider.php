@@ -62,13 +62,23 @@ class Provider extends AbstractProvider
      */
     public function initiatePayment(Controller $controller, PurchaseRequest $purchaseRequest, Purchase $purchase)
     {
+        $displayCardIcons = false;
+        $prefix = 'display_creditcards_';
+        $prefixLength = strlen($prefix);
+        foreach($purchase->paymentProfile->options as $key => $value){
+            if(substr($key, 0, $prefixLength) == $prefix) { 
+                $displayCardIcons = true; 
+                break; 
+            }
+        }
+
         $viewParams = [
             'enableLivePayments' => !!\XF::config('enableLivePayments'),
-
             'purchaseRequest' => $purchaseRequest,
             'paymentProfile' => $purchase->paymentProfile,
             'purchaser' => $purchase->purchaser,
             'purchase' => $purchase,
+            'displayCardIcons' => $displayCardIcons
         ];
 
         return $controller->view(

@@ -122,6 +122,10 @@ class Sdk
             $customerAddress->setLastName('Appleseed');
             $customerAddressHasData = true;
         }
+        if(isset($inputs['phone_number'])){
+            $customerAddress->setPhoneNumber($inputs['phone_number']);
+            $customerAddressHasData = true;
+        }
         if (isset($inputs['address']) && isset($inputs['city']) && isset($inputs['state']) && isset($inputs['zip'])) {
             $customerAddress->setAddress($inputs['address']);
             $customerAddress->setCity($inputs['city']);
