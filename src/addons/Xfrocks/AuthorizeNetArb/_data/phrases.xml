@@ -15,6 +15,7 @@
   <phrase title="Xfrocks_AuthorizeNetArb_full_name" version_id="1000000" version_string="1.0.0"><![CDATA[Full Name]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_last_name" version_id="1000000" version_string="1.0.0"><![CDATA[Last Name]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_phone_number" version_id="1000000" version_string="1.0.0"><![CDATA[Phone number]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_zip_postal_code" version_id="1000000" version_string="1.0.0"><![CDATA[Zip / Postal Code]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_progress_text_preparing" version_id="1000070" version_string="1.0.0"><![CDATA[Preparing payment profile...]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_progress_text_processing" version_id="1000070" version_string="1.0.0"><![CDATA[Processing payment...]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_public_client_key" version_id="1000000" version_string="1.0.0"><![CDATA[Public Client Key]]></phrase>
@@ -27,8 +28,9 @@
   <phrase title="Xfrocks_AuthorizeNetArb_display_credit_cards" version_id="1000000" version_string="1.0.0"><![CDATA[These check boxes show the credit cards of the provider cards you accept (this is cosmetic and does not affect processing).]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_require_names" version_id="1000000" version_string="1.0.0"><![CDATA[Require full name (first and last)]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_signature_key" version_id="1000000" version_string="1.0.0"><![CDATA[Signature Key]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_signature_key_explain" version_id="1000000" version_string="1.0.0"><![CDATA[This can be obtained in Authorize.Net Merchant Interface: Account > Settings > Security Settings > General Security Settings > API Credentials &amp; Keys. You will need to enter your answer to the secret question and select "New Signature Key" to create it.
-]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_signature_key_explain" version_id="1000000" version_string="1.0.0"><![CDATA[This can be obtained in Authorize.Net Merchant Interface: Account > Settings > Security Settings > General Security Settings > API Credentials &amp; Keys. You will need to enter your answer to the secret question and select "New Signature Key" to create it.]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_street_address" version_id="1000000" version_string="1.0.0"><![CDATA[Street Address]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_city" version_id="1000000" version_string="1.0.0"><![CDATA[City]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_state" version_id="1000000" version_string="1.0.0"><![CDATA[State]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_subscription_cancelled_successfully" version_id="1000000" version_string="1.0.0"><![CDATA[Authorize.Net subscription cancelled successfully]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_transaction_key" version_id="1000000" version_string="1.0.0"><![CDATA[Transaction Key]]></phrase>
