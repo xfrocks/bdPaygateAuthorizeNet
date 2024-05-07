@@ -1,5 +1,5 @@
 {
-    "src/addons/Xfrocks/AuthorizeNetArb/addon.json": "f8edf553d50847f65341fe97e35f9514825a83e04c488a1c0bc9eb011ad16518",
+    "src/addons/Xfrocks/AuthorizeNetArb/addon.json": "7c1e896cf0fdf2b481700fa659bdbfe38f8e2abc24a3b080c085ecc96cbb87ed",
     "src/addons/Xfrocks/AuthorizeNetArb/composer.json": "28d008368a39d9c897b3697efe8cbfa18fecbb10f48e5fc9b7a11ec9462de1c8",
     "src/addons/Xfrocks/AuthorizeNetArb/composer.lock": "a44564f4508f63158b51e4bde13578dfbc6aa72b3a39d265c50286b2b488f661",
     "src/addons/Xfrocks/AuthorizeNetArb/Payment/Provider.php": "3849805dec7b2a8b24c60f2b896a06f56a570777300d3868ae1428e411bfa451",
@@ -589,7 +589,7 @@
     "src/addons/Xfrocks/AuthorizeNetArb/_data/routes.xml": "550fa64f9feedf137dd877b38c2684f94474619d2d83890dbb717a91b50da8f5",
     "src/addons/Xfrocks/AuthorizeNetArb/_data/style_properties.xml": "8b8690a8512f01f219dd2da76e3d0c5f62afc1f317b87794a7331c859c36a7a8",
     "src/addons/Xfrocks/AuthorizeNetArb/_data/style_property_groups.xml": "68e1879cb3846c42d978487aa8d5145ff3335fc39e58016878824d5cf3fd684c",
-    "src/addons/Xfrocks/AuthorizeNetArb/_data/templates.xml": "0e2ab36acf3ae7337b764f7c87d1f8b456a1da40e42016c3c4ffc471c9a80e56",
+    "src/addons/Xfrocks/AuthorizeNetArb/_data/templates.xml": "54f5fe8f56c4e776122d3f5a32f10324e0f04812243d86958bcb4b23e5eac92a",
     "src/addons/Xfrocks/AuthorizeNetArb/_data/template_modifications.xml": "3b54b7df00a6a4a18c5e012b6e2588e35c23aaa13a5fc227f08646a97590d778",
     "src/addons/Xfrocks/AuthorizeNetArb/_data/widget_definitions.xml": "37e46965256430f24004c2e7f08ba08f9b0d1cbcc4d70e84b3f4e3ffb713e64b",
     "src/addons/Xfrocks/AuthorizeNetArb/_data/widget_positions.xml": "a29cee66134f6bc5d75ed9df1eef21096c24401915c5b5c774389c3d7bb2d5b3"
