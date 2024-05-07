@@ -66,7 +66,7 @@
 		{{ phrase('button.cancel') }}
 	</xf:button>
 </div>]]></template>
-  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1040100" version_string="1.4.1"><![CDATA[<xf:css src="payment_initiate.less"/>
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1040200" version_string="1.4.2"><![CDATA[<xf:css src="payment_initiate.less"/>
 <xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb"/>
 
 <xf:title>{{ phrase('enter_payment_details') }}</xf:title>
@@ -90,8 +90,11 @@
                 <xf:formrow rowtype="input"
                             label="{{ phrase('pay_by_card') }}">
                     <div class="inputGroup">
-                        <input type="text" rel="card-number" class="input" maxlength="16" style="width: 12em;" required="required"
-                              placeholder="" autocomplete="cc-number"/>				
+                        <xf:textbox rel="card-number"
+                                maxlength="16"
+                                placeholder=""
+                                autocomplete="cc-number"
+                                style="width: 12em;" required="required" />	
                     </div>
 					<xf:if is="{$displayCardIcons}">
 						<div class="formRow-explain">
@@ -123,7 +126,7 @@
                         <div class="inputGroup-text">
                             {{ phrase('Xfrocks_AuthorizeNetArb_expiration_date') }}
                         </div>
-							<xf:select rel="month" class="input" required="required"
+							<xf:select rel="month" required="required"
                                autocomplete="cc-exp-month" style="width: 9em;">
 								<xf:option></xf:option>
 								<xf:option value="01">1 - {{ phrase('month_1') }}</xf:option>
@@ -143,7 +146,7 @@
                             /
                         </div>
 						<xf:set var="$years" value="{{range(date($xf.time, 'Y'),date($xf.time, 'Y')+20)}}" />
-						<xf:select rel="year" class="input" required="required"
+						<xf:select rel="year" required="required"
                                autocomplete="cc-exp-year" style="width: 4em;">
 							<xf:option value=""></xf:option>
 							<xf:foreach loop="$years" value="$year">
@@ -156,8 +159,11 @@
                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                 {{ phrase('Xfrocks_AuthorizeNetArb_card_code') }}
                             </div>
-                            <input type="text" rel="card-code" class="input" maxlength="4" required="required"
-                                   autocomplete="cc-csv" style="width: 4em;"/>
+                            <xf:textbox rel="card-code"
+                                maxlength="4"
+                                placeholder=""
+                                autocomplete="cc-csv"
+                                style="width: 4em;" required="required" />
                         </xf:if>
                     </div>
 
@@ -173,11 +179,18 @@
                     <xf:formrow rowtype="input"
                                 label="{{ phrase('Xfrocks_AuthorizeNetArb_full_name') }}">
                         <div class="inputGroup">
-                            <input type="text" name="first_name" class="input" maxlength="50" required="required"
-                                   autocomplete="given-name" placeholder="{{phrase('Xfrocks_AuthorizeNetArb_first_name')}}" />
+                            <xf:textbox name="first_name"
+                                maxlength="50"
+                                placeholder="{{phrase('Xfrocks_AuthorizeNetArb_first_name')}}"
+                                autocomplete="given-name"
+                                required="required" />
+                                
                             <div class="inputGroup-splitter"></div>
-                            <input type="text" name="last_name" class="input" maxlength="50" required="required"
-                                   autocomplete="family-name" placeholder="{{phrase('Xfrocks_AuthorizeNetArb_last_name')}}" />
+                            <xf:textbox name="last_name"
+                                maxlength="50"
+                                placeholder="{{phrase('Xfrocks_AuthorizeNetArb_last_name')}}"
+                                autocomplete="family-name"
+                                required="required" />
                         </div>
                     </xf:formrow>
                 </xf:if>
@@ -191,37 +204,44 @@
 				<xf:if is="{$paymentProfile.options.require_phone_number}">
                     <xf:textboxrow label="{{ phrase('Xfrocks_AuthorizeNetArb_phone_number') }}"
                                    name="phone" maxlength="15" style="width: 10em;" required="required"
-                                   value="" autocomplete="phone" placeholder="555-555-5555" />
+                                   autocomplete="phone" placeholder="555-555-5555" />
                 </xf:if>
 
                 <xf:if is="{$paymentProfile.options.require_address}">
                     <xf:formrow rowtype="input"
                                 label="{{ phrase('Xfrocks_AuthorizeNetArb_address') }}">
                         <div class="inputGroup">
-                            <input type="text" name="address" class="input" maxlength="60" required="required"
-                                   autocomplete="billing street-address" placeholder="{{phrase('Xfrocks_AuthorizeNetArb_street_address')}}"/>
+                            <xf:textbox name="address"
+                                maxlength="60"
+                                placeholder="{{phrase('Xfrocks_AuthorizeNetArb_street_address')}}"
+                                autocomplete="billing street-address"
+                                required="required" />
                         </div>
 
                         <br/>
                         <div class="inputGroup">
-                            <input type="text" name="city" class="input" maxlength="40" required="required"
-                                   autocomplete="billing address-level2" placeholder="{{phrase('Xfrocks_AuthorizeNetArb_city')}}" />
+                            <xf:textbox name="city"
+                                maxlength="40"
+                                placeholder="{{phrase('Xfrocks_AuthorizeNetArb_city')}}"
+                                autocomplete="billing address-level2"
+                                required="required" />
                         </div>
 
                         <br/>
                         <div class="inputGroup">
+                            <xf:textbox name="state"
+                                maxlength="40"
+                                placeholder="{{phrase('Xfrocks_AuthorizeNetArb_state')}}"
+                                autocomplete="billing address-level1"
+                                required="required" />
                             <div class="inputGroup-text">
-                                {{ phrase('Xfrocks_AuthorizeNetArb_state') }}
+                                &nbsp;&nbsp;
                             </div>
-                            <input type="text" name="state" class="input" maxlength="40" required="required" label="{{ phrase('Xfrocks_AuthorizeNetArb_state') }}"
-                                   autocomplete="billing address-level1" placeholder="{{phrase('Xfrocks_AuthorizeNetArb_state')}}"/>
-
-                            <div class="inputGroup-text">
-                                &nbsp;&nbsp;&nbsp;&nbsp;
-                                {{ phrase('Xfrocks_AuthorizeNetArb_zip') }}
-                            </div>
-                            <input type="text" name="zip" class="input" maxlength="20" required="required" label="{{ phrase('Xfrocks_AuthorizeNetArb_zip') }}"
-                                   autocomplete="billing postal-code" placeholder="{{phrase('Xfrocks_AuthorizeNetArb_zip_postal_code')}}"/>
+                            <xf:textbox name="zip"
+                                maxlength="20"
+                                placeholder="{{phrase('Xfrocks_AuthorizeNetArb_zip_postal_code')}}"
+                                autocomplete="billing postal-code"
+                                required="required" />
                         </div>
                     </xf:formrow>
                 </xf:if>

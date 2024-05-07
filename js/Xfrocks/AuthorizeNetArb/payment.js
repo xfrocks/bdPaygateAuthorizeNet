@@ -76,14 +76,22 @@
                     if (rel === _undefined) {
                         rel = key;
                     }
-
+                
+                    // Try to find an input control first
                     var val = that.$target.find('input[rel=' + rel + ']').val();
+                
+                    // If no input control is found or its value is empty, try to find a select control
+                    if (!val) {
+                        val = that.$target.find('select[rel=' + rel + '] option:selected').val();
+                    }
+                
+                    // If no value is found, return
                     if (!val) {
                         return;
                     }
-
+                
                     obj[key] = val;
-                };
+                };                
 
             fill(cardData, 'cardNumber', 'card-number');
             fill(cardData, 'month');
