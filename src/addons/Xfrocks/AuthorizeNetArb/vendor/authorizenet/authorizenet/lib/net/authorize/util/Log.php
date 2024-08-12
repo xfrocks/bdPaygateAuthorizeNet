@@ -29,9 +29,9 @@ define("ANET_LOG_LEVEL",ANET_LOG_DEBUG);
 class Log
 {
     private $sensitiveXmlTags = NULL;
+    private $sensitiveStringRegexes = NULL;
     private $logFile = '';
     private $logLevel = ANET_LOG_LEVEL;
-    private $sensitiveStringRegexes = NULL;
 	
 	/**
 	* Takes a regex pattern (string) as argument and adds the forward slash delimiter.
