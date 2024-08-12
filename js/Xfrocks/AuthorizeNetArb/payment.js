@@ -32,6 +32,7 @@
                 return;
             }
 
+            this.progressText = this.target.querySelector(this.options.progressTextSelector);
 
             document.addEventListener('ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
             document.addEventListener('ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
