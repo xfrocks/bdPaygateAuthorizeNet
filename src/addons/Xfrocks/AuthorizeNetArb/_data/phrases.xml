@@ -10,6 +10,15 @@
 	<li>{errors}</li>
 </ul>]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_city" version_id="1000000" version_string="1.0.0"><![CDATA[City]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_amex" version_id="1000000" version_string="1.0.0"><![CDATA[American Express]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_diners_club" version_id="1000000" version_string="1.0.0"><![CDATA[Diners Club]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_discover" version_id="1000000" version_string="1.0.0"><![CDATA[Discover]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_enroute" version_id="1000000" version_string="1.0.0"><![CDATA[EnRoute]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_jcb" version_id="1000000" version_string="1.0.0"><![CDATA[JCB]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_mastercard" version_id="1000000" version_string="1.0.0"><![CDATA[MasterCard]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_not_accepted" version_id="1000000" version_string="1.0.0"><![CDATA[{friendlyCardType} is not accepted.]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_unsupported" version_id="1000000" version_string="1.0.0"><![CDATA[The specified credit card]]></phrase>
+  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_visa" version_id="1000000" version_string="1.0.0"><![CDATA[Visa]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_display_credit_cards" version_id="1000000" version_string="1.0.0"><![CDATA[These check boxes show the credit cards of the provider cards you accept (this is cosmetic and does not affect processing).]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_expiration_date" version_id="1000000" version_string="1.0.0"><![CDATA[Expiration Date]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_first_name" version_id="1000000" version_string="1.0.0"><![CDATA[First Name]]></phrase>
@@ -35,13 +44,4 @@
   <phrase title="Xfrocks_AuthorizeNetArb_you_must_provide_option_x_to_setup_this_payment" version_id="1000000" version_string="1.0.0"><![CDATA[You must provide a valid {option} to set up this payment profile.]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_zip" version_id="1000000" version_string="1.0.0"><![CDATA[Zip]]></phrase>
   <phrase title="Xfrocks_AuthorizeNetArb_zip_postal_code" version_id="1000000" version_string="1.0.0"><![CDATA[Zip / Postal Code]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_not_accepted" version_id="1000000" version_string="1.0.0"><![CDATA[{friendlyCardType} is not accepted.]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_unsupported" version_id="1000000" version_string="1.0.0"><![CDATA[The specified credit card]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_amex" version_id="1000000" version_string="1.0.0"><![CDATA[American Express]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_diners_club" version_id="1000000" version_string="1.0.0"><![CDATA[Diners Club]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_discover" version_id="1000000" version_string="1.0.0"><![CDATA[Discover]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_enroute" version_id="1000000" version_string="1.0.0"><![CDATA[EnRoute]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_jcb" version_id="1000000" version_string="1.0.0"><![CDATA[JCB]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_mastercard" version_id="1000000" version_string="1.0.0"><![CDATA[MasterCard]]></phrase>
-  <phrase title="Xfrocks_AuthorizeNetArb_credit_card_visa" version_id="1000000" version_string="1.0.0"><![CDATA[Visa]]></phrase>
 </phrases>
