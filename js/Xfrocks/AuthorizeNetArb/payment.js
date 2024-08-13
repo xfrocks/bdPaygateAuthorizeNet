@@ -7,6 +7,8 @@
             options: {
                 apiLoginId: null,
                 hiddenInputSelector: '[name=opaque_data]',
+                cardNotAcceptedSelector: null,
+                acceptedCards: null,
                 phrasePreparing: null,
                 phraseProcessing: null,
                 progressTextSelector: null,
@@ -33,10 +35,45 @@
                 }
     
                 this.progressText = this.target.querySelector(this.options.progressTextSelector);
-    
+                this.cardNotAcceptedText = this.target.querySelector(this.options.cardNotAcceptedSelector);
+
+                if(this.options.acceptedCards.length > 0)
+                    XF.on(this.target.querySelector('input[rel="card-number"]'), 'change', this.validateCardNumber.bind(this));
                 XF.on(this.target, 'ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
                 XF.on(this.target, 'ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
                 XF.on(this.target, 'submit', this.onSubmit.bind(this));
+            },
+
+            validateCardNumber: function(input) {
+                const cardPatterns = {
+                    'amex': /^3[47][0-9]{13}$/,
+                    'diners_club': /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,
+                    'discover': /^6(?:011|5[0-9]{2})[0-9]{12}$/,
+                    'enroute': /^(?:2014|2149)\d{11}$/,
+                    'jcb': /^(?:2131|1800|35\d{3})\d{11}$/,
+                    'mastercard': /^5[1-5][0-9]{14}$/,
+                    'visa': /^4[0-9]{12}(?:[0-9]{3})?$/
+                };
+           
+                const cardType = Object.keys(cardPatterns).find(type => cardPatterns[type].test(input.target.value));
+            
+                if (!cardType || !this.options.acceptedCards.includes(cardType)) {
+                    input.target.style.borderColor = 'red';
+                    console.log(XF.phrases);
+                    const friendlyCardType = {
+                        'amex': XF.phrase('amex'),
+                        'diners_club': XF.phrase('diners_club'),
+                        'discover': XF.phrase('discover'),
+                        'enroute': XF.phrase('enroute'),
+                        'jcb': XF.phrase('jcb'),
+                        'mastercard': XF.phrase('mastercard'),
+                        'visa': XF.phrase('visa')
+                    }[cardType] || XF.phrase('card_unsupported');
+                    this.cardNotAcceptedText.textContent = XF.phrase('not_accepted', {'{friendlyCardType}':friendlyCardType});
+                } else {
+                    input.target.style.borderColor = '';
+                    this.cardNotAcceptedText.textContent = '';
+                }
             },
     
             onBeforeAjaxSubmit: function (e, config) {

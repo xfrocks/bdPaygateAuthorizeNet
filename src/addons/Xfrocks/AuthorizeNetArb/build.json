@@ -1,0 +1,11 @@
+{
+  "additional_files": [
+    "js/Xfrocks/AuthorizeNetArb",
+    "payment_callback_authorizenet.php"
+  ],
+  "minify": [
+    "js/Xfrocks/AuthorizeNetArb/payment.js"
+  ],
+  "rollup": {},
+  "exec": []
+}

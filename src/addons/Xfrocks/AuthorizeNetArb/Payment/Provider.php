@@ -65,10 +65,12 @@ class Provider extends AbstractProvider
         $displayCardIcons = false;
         $prefix = 'display_creditcards_';
         $prefixLength = strlen($prefix);
+        $acceptedCards = [];
         foreach($purchase->paymentProfile->options as $key => $value){
             if(substr($key, 0, $prefixLength) == $prefix) { 
-                $displayCardIcons = true; 
-                break; 
+                if (!in_array($prefix, $acceptedCards)) {
+                    $acceptedCards[] = substr($key, $prefixLength);
+                }
             }
         }
 
@@ -78,7 +80,7 @@ class Provider extends AbstractProvider
             'paymentProfile' => $purchase->paymentProfile,
             'purchaser' => $purchase->purchaser,
             'purchase' => $purchase,
-            'displayCardIcons' => $displayCardIcons
+            'acceptedCards' => $acceptedCards
         ];
 
         return $controller->view(
