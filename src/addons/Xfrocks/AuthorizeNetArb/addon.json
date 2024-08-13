@@ -11,8 +11,8 @@
     "extra_urls": [],
     "require": {
         "XF": [
-            2030000,
-            "XenForo 2.3.0+"
+            2030100,
+            "XenForo 2.3.1+"
         ]
     },
     "icon": ""
