@@ -34,9 +34,9 @@
 
             this.progressText = this.target.querySelector(this.options.progressTextSelector);
 
-            this.target.addEventListener('ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
-            this.target.addEventListener('ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
-            this.target.addEventListener('submit', this.onSubmit.bind(this));
+            XF.on(this.target, 'ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
+            XF.on(this.target, 'ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
+            XF.on(this.target, 'submit', this.onSubmit.bind(this));
         },
 
         onBeforeAjaxSubmit: function (e, config) {
@@ -64,7 +64,6 @@
             }
         
             e.preventDefault();
-            e.preventSubmit = true;
         
             const secureData = {};
             const authData = {};
@@ -125,14 +124,15 @@
         },        
         
         _callAjaxSubmit: function (method, args) {
-            const handlers = this.target.dataset.xfElementHandlers ? JSON.parse(this.target.dataset.xfElementHandlers) : {};
-        
-            if (!handlers['ajax-submit']) {
+            const handlers = this.target.dataset.xfElementHandlers ? JSON.parse(this.target.dataset.xfElementHandlers) : null;
+            
+            if (!handlers || !handlers['ajax-submit']) {
                 return;
             }
         
-            return handlers['ajax-submit'][method].apply(handlers['ajax-submit'], args);
-        }
+            const ajaxSubmit = handlers['ajax-submit'];
+            return ajaxSubmit[method].apply(ajaxSubmit, args);
+        }        
 
     });
 
