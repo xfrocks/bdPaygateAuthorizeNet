@@ -2,13 +2,18 @@
     "legacy_addon_id": "bdPaygateAuthorizeNetArb",
     "title": "Payment Profile: Authorize.Net with ARB",
     "description": "This is a forked copy of Xfrocks Authorize.Net with ARB plugin.",
-    "version_id": 1040200,
-    "version_string": "1.4.2",
+    "version_id": 1050000,
+    "version_string": "1.5.0",
     "dev": "",
     "dev_url": "https://github.com/JackStromberg/bdPaygateAuthorizeNet",
     "faq_url": "",
     "support_url": "",
     "extra_urls": [],
-    "require": [],
+    "require": {
+        "XF": [
+            2030100,
+            "XenForo 2.3.1+"
+        ]
+    },
     "icon": ""
 }
