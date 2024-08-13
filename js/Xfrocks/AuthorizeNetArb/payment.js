@@ -34,9 +34,9 @@
 
             this.progressText = this.target.querySelector(this.options.progressTextSelector);
 
-            document.addEventListener('ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
-            document.addEventListener('ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
-            document.addEventListener('submit', this.onSubmit.bind(this));
+            this.target.addEventListener('ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
+            this.target.addEventListener('ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
+            this.target.addEventListener('submit', this.onSubmit.bind(this));
         },
 
         onBeforeAjaxSubmit: function (e, config) {
@@ -58,94 +58,81 @@
             this.progressText.textContent = '';
         },
 
-        onSubmit: function (e) {
+        onSubmit: function(e) {
             if (this.hiddenInput.value) {
                 return true;
             }
-
+        
             e.preventDefault();
             e.preventSubmit = true;
-
-            var secureData = {},
-                authData = {},
-                cardData = {},
-                that = this,
-                fill = function (obj, key, rel) {
-                    if (typeof rel === 'undefined') {
-                        rel = key;
-                    }
-
-                    // Try to find an input control first
-                    var inputElement = that.target.querySelector('input[rel="' + rel + '"]');
-                    var val = inputElement ? inputElement.value : null;
-
-                    // If no input control is found or its value is empty, try to find a select control
-                    if (!val) {
-                        const dropdown = that.target.querySelector('select[rel="' + rel +'"]');
-                        val = dropdown ? dropdown.value : null;
-                    }
-
-                    // If no value is found, return
-                    if (!val) {
-                        return;
-                    }
-
+        
+            const secureData = {};
+            const authData = {};
+            const cardData = {};
+        
+            const fill = (obj, key, rel = key) => {
+                const inputElement = this.target.querySelector(`input[rel="${rel}"]`);
+                let val = inputElement ? inputElement.value : null;
+        
+                if (!val) {
+                    const dropdown = this.target.querySelector(`select[rel="${rel}"]`);
+                    val = dropdown ? dropdown.value : null;
+                }
+        
+                if (val) {
                     obj[key] = val;
-                };
-
+                }
+            };
+        
             fill(cardData, 'cardNumber', 'card-number');
             fill(cardData, 'month');
             fill(cardData, 'year');
             fill(cardData, 'cardCode', 'card-code');
             secureData.cardData = cardData;
-
+        
             authData.apiLoginID = this.options.apiLoginId;
             authData.clientKey = this.options.publicClientKey;
             secureData.authData = authData;
-
+        
             this._callAjaxSubmit('disableButtons');
             this.progressText.textContent = this.options.phrasePreparing;
-
+        
             Accept.dispatchData(secureData, this.onAcceptJsResponse.bind(this));
-
+        
             return false;
-        },
+        },        
 
-        onAcceptJsResponse: function (response) {
+        onAcceptJsResponse: function(response) {
             this.progressText.textContent = '';
             this._callAjaxSubmit('enableButtons');
-
-            if (response.messages && response.messages.resultCode === "Error") {
-                var messages = response.messages,
-                    text = [];
-                for (var i = 0; i < messages.message.length; i++) {
-                    var message = messages.message[i];
-                    console.error(message.code + ": " + message.text);
-                    text.push(message.text);
-                }
-
-                XF.alert(text.join('<br />'));
         
+            if (response.messages?.resultCode === "Error") {
+                const { messages } = response;
+                const text = messages.message.map(message => {
+                    console.error(`${message.code}: ${message.text}`);
+                    return message.text;
+                });
+        
+                XF.alert(text.join('<br />'));
                 return;
             }
         
             this.hiddenInput.value = JSON.stringify(response.opaqueData);
         
-            var that = this;
-            window.setTimeout(function () {
-                that._callAjaxSubmit('submit');
+            setTimeout(() => {
+                this._callAjaxSubmit('submit');
             }, 0);
-        },
+        },        
         
         _callAjaxSubmit: function (method, args) {
-            var handlers = this.target.dataset.xfElementHandlers ? JSON.parse(this.target.dataset.xfElementHandlers) : {};
+            const handlers = this.target.dataset.xfElementHandlers ? JSON.parse(this.target.dataset.xfElementHandlers) : {};
         
-            if (typeof handlers['ajax-submit'] === 'undefined') {
+            if (!handlers['ajax-submit']) {
                 return;
             }
         
             return handlers['ajax-submit'][method].apply(handlers['ajax-submit'], args);
-        }        
+        }
 
     });
 
