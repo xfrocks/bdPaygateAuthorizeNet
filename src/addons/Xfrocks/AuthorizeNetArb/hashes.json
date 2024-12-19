@@ -1,8 +1,8 @@
 {
-    "js/Xfrocks/AuthorizeNetArb/payment.js": "8c14a9282f8333e88a66a582031a3e836bafba1e702a046cfcf9e1c99a2e77ad",
-    "js/Xfrocks/AuthorizeNetArb/payment.min.js": "4acc6e69e5c673b544a5453e7d3ab1982c89ba9b89641399f9265b6f7b29b27c",
+    "js/Xfrocks/AuthorizeNetArb/payment.js": "0f1e86ab96f4edddaa9767c38dfdf0dd51e5d671a93ae02a92495aa7a558800a",
+    "js/Xfrocks/AuthorizeNetArb/payment.min.js": "b3b39a6cb812980bfbfa74f8309f6e0d51de1adcc3af3f771480aef176ec465c",
     "payment_callback_authorizenet.php": "cc85cfb20ccb59649e4dc6b8cd28af9b4a1bc27a11414b2680f923a977303b1d",
-    "src/addons/Xfrocks/AuthorizeNetArb/addon.json": "325cb1c04d49cff3448554db65c7d74727644e6b2853c37bf0c9e80650b91364",
+    "src/addons/Xfrocks/AuthorizeNetArb/addon.json": "47e4067652840c6e6acb9e062ef5a3c39cce5796e090cb0f09a5114c9aa09e05",
     "src/addons/Xfrocks/AuthorizeNetArb/composer.json": "f4f8956dc1c6bd73ffc7a5cd96e500fc92b435c1c09f4539036d337abf98a7ab",
     "src/addons/Xfrocks/AuthorizeNetArb/composer.lock": "0e78372e9d856c26333adf961878d0d712cd3672e34f72ae77076e24debfa080",
     "src/addons/Xfrocks/AuthorizeNetArb/composer.phar": "2bc37f85258f76835cd924c201bc18debc3505526bed8e0204a2f32fac7c21d0",
