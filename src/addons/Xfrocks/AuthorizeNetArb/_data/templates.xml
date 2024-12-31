@@ -66,7 +66,7 @@
 		{{ phrase('button.cancel') }}
 	</xf:button>
 </div>]]></template>
-  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1050000" version_string="1.5.0"><![CDATA[<xf:css src="payment_initiate.less" />
+  <template type="public" title="Xfrocks_AuthorizeNetArb_payment_initiate" version_id="1050200" version_string="1.5.2"><![CDATA[<xf:css src="payment_initiate.less" />
 <xf:js src="Xfrocks/AuthorizeNetArb/payment.js" min="1" addon="Xfrocks/AuthorizeNetArb" />
 
 <xf:title>{{ phrase('enter_payment_details') }}</xf:title>
@@ -247,7 +247,7 @@
 
                         <br/>
 						<div class="inputGroup">
-							<xf:select rel="country" required="required" autocomplete="country">
+							<xf:select name="country" required="required" autocomplete="billing country">
 								<xf:option value="AF">Afghanistan</xf:option>
 								<xf:option value="AX">Aland Islands</xf:option>
 								<xf:option value="AL">Albania</xf:option>
