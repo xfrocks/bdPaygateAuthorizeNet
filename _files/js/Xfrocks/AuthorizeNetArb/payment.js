@@ -1,4 +1,4 @@
-!function ($, window, document, _undefined) {
+!function (window, _undefined) {
     "use strict";
 
     XF.Xfrocks_AuthorizeNetArb_PayForm = XF.Element.newHandler({
@@ -25,27 +25,25 @@
                 return;
             }
 
-            this.$hiddenInput = this.$target.find(this.options.hiddenInputSelector);
-            if (this.$hiddenInput.length !== 1) {
+            this.hiddenInput = this.target.querySelector(this.options.hiddenInputSelector);
+            if (!this.hiddenInput) {
                 console.error('Form must contain a data-hidden-input-selector attribute.');
                 return;
             }
 
-            this.$progressText = this.$target.find(this.options.progressTextSelector);
+            this.progressText = this.target.querySelector(this.options.progressTextSelector);
 
-            this.$target.bind({
-                'ajax-submit:before': $.proxy(this, 'onBeforeAjaxSubmit'),
-                'ajax-submit:always': $.proxy(this, 'onBeforeAjaxAlways'),
-                'submit': $.proxy(this, 'onSubmit')
-            });
+            XF.on(this.target, 'ajax-submit:before', this.onBeforeAjaxSubmit.bind(this));
+            XF.on(this.target, 'ajax-submit:always', this.onBeforeAjaxAlways.bind(this));
+            XF.on(this.target, 'submit', this.onSubmit.bind(this));
         },
 
-        onBeforeAjaxSubmit: function (e, config) {
+        onBeforeAjaxSubmit: function (e) {
             // increase AJAX timeout to account for slow api requests
-            config.ajaxOptions.timeout = 90000;
+            e.ajaxOptions.timeout = 90000;
 
-            if (this.$hiddenInput.val()) {
-                this.$progressText.text(this.options.phraseProcessing);
+            if (this.hiddenInput.value) {
+                this.progressText.textContent = this.options.phraseProcessing;
 
                 return true;
             }
@@ -56,13 +54,13 @@
         onBeforeAjaxAlways: function () {
             // reset Accept.js data to avoid "Invalid OTS Token." error
             // assuming server always consumes the token upon submission
-            this.$hiddenInput.val('');
+            this.hiddenInput.value = '';
 
-            this.$progressText.text('');
+            this.progressText.textContent = '';
         },
 
         onSubmit: function (e) {
-            if (this.$hiddenInput.val()) {
+            if (this.hiddenInput.value) {
                 return true;
             }
 
@@ -77,7 +75,8 @@
                         rel = key;
                     }
 
-                    var val = that.$target.find('input[rel=' + rel + ']').val();
+                    var input = that.target.querySelector('input[rel=' + rel + ']');
+                    var val = input ? input.value : _undefined;
                     if (!val) {
                         return;
                     }
@@ -96,16 +95,16 @@
             secureData.authData = authData;
 
             this._callAjaxSubmit('disableButtons');
-            this.$progressText.text(this.options.phrasePreparing);
+            this.progressText.textContent = this.options.phrasePreparing;
 
             // noinspection JSUnresolvedFunction
-            Accept.dispatchData(secureData, $.proxy(this, 'onAcceptJsResponse'));
+            Accept.dispatchData(secureData, this.onAcceptJsResponse.bind(this));
 
             return false;
         },
 
         onAcceptJsResponse: function (response) {
-            this.$progressText.text('');
+            this.progressText.textContent = '';
             this._callAjaxSubmit('enableButtons');
 
             // noinspection JSUnresolvedVariable
@@ -125,7 +124,7 @@
             }
 
             // noinspection JSUnresolvedVariable
-            this.$hiddenInput.val(JSON.stringify(response.opaqueData));
+            this.hiddenInput.value = JSON.stringify(response.opaqueData);
 
             var that = this;
             window.setTimeout(function () {
@@ -141,14 +140,14 @@
          * @see XF.AjaxSubmit
          */
         _callAjaxSubmit: function (method, args) {
-            var handlers = this.$target.data('xf-element-handlers');
-            if (handlers['ajax-submit'] === _undefined) {
+            var handler = XF.Element.getHandler(this.target, 'ajax-submit');
+            if (!handler) {
                 return;
             }
 
-            return handlers['ajax-submit'][method].apply(handlers['ajax-submit'], args);
+            return handler[method].apply(handler, args);
         }
     });
 
     XF.Element.register('authorizenet-payment-form', 'XF.Xfrocks_AuthorizeNetArb_PayForm');
-}(jQuery, window, document);
+}(window);
